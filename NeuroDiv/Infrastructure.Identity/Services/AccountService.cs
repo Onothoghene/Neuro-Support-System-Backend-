@@ -235,19 +235,24 @@ namespace Infrastructure.Identity.Services
                 _context.SaveChanges();
             }
 
+            //Update Last Login Date
+            user.LastLoginDate = DateTime.Now;
+            await _userManager.UpdateAsync(user);
+
             return new Response<AuthenticationResponse>(response, $"User {user.UserName} Authenticated");
         }
 
-        //public async Task<Response<bool>> LogOut(string email)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(email);
-        //    if (user == null)
-        //    {
-        //        throw new ApiException($"No Registered Account with {email}.");
-        //    }
+        public async Task<Response<bool>> LogOut(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                throw new ApiException($"No Registered Account with {email}.");
 
+            user.IsLoggedIn = false;
+            await _userManager.UpdateAsync(user);
 
-        //}
+            return new Response<bool>(true, $"User {user.UserName} with email: {user.Email} Logged Out");
+        }
 
         public async Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token)
         {

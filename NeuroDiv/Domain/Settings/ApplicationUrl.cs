@@ -14,6 +14,5 @@ namespace Domain.Settings
         public string LoggerPath { get; set; }
         public string ForgetPasswordUrl { get; set; }
         public string InviteUrl { get; set; }
-        public string SecretariatLoginUrl { get; set; }
     }
 }
