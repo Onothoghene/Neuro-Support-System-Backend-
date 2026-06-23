@@ -1,0 +1,19 @@
+﻿using Application.DTOs.Account;
+using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Infrastructure.Identity.Models
+{
+    public class ApplicationUser : IdentityUser
+    {
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public bool? IsDeleted { get; set; }
+        public bool? IsLoggedIn { get; set; }
+        public DateTime? LastLoginDate { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
+        
+    }
+}
