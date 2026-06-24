@@ -1,9 +1,6 @@
 ﻿using Application.DTOs.Account;
 using Application.Wrappers;
-using Microsoft.Extensions.Primitives;
-using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Interfaces
@@ -20,7 +17,6 @@ namespace Application.Interfaces
         Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token);
         List<int> GetUserIdsByRoleAsync(string role);
         Task<Response<string>> ResendVerificationMail(string email);
-
         Task<string> GetUserRoleByEmail(string email);
         Task<string> GetUserRoleById(int userId);
         Task<Response<bool>> VerifyOtp(int otp);
@@ -28,5 +24,7 @@ namespace Application.Interfaces
         Task<Response<string>> CreateAdmin(RegisterRequest request);
         List<int> GetUsersAsync();
         List<int> GetAdminsAsync();
+        Task<Response<bool>> LogOutAsync(string email);
+        Task<Response<bool>> LogOutAsync(string email, string refreshToken);
     }
 }

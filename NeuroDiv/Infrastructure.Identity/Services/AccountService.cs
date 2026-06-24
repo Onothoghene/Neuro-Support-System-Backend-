@@ -242,16 +242,43 @@ namespace Infrastructure.Identity.Services
             return new Response<AuthenticationResponse>(response, $"User {user.UserName} Authenticated");
         }
 
-        public async Task<Response<bool>> LogOut(string email)
+        public async Task<Response<bool>> LogOutAsync(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
                 throw new ApiException($"No Registered Account with {email}.");
 
+            if (user.RefreshTokens != null)
+                user.RefreshTokens.Clear();
+
             user.IsLoggedIn = false;
             await _userManager.UpdateAsync(user);
 
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new ApiException("Error occurred during logout.");
+
             return new Response<bool>(true, $"User {user.UserName} with email: {user.Email} Logged Out");
+        }
+
+        public async Task<Response<bool>> LogOutAsync(string email, string refreshToken)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                throw new ApiException($"No Registered Account with {email}.");
+
+            // Find the specific token being used by this device
+            var tokenRecord = user.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
+
+            if (tokenRecord != null)
+            {
+                // Remove only the token associated with this device
+                user.RefreshTokens.Remove(tokenRecord);
+                await _userManager.UpdateAsync(user);
+            }
+
+            return new Response<bool>(true, "Successfully logged out from this device.");
         }
 
         public async Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token)
@@ -361,24 +388,6 @@ namespace Infrastructure.Identity.Services
             }
         }
 
-        //public async Task<Response<string>> ChangePassword(ChangePasswordRequest model)
-        //{
-        //    var user = await _userManager.FindByEmailAsync(model.Email);
-
-        //    if (user == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
-
-        //    var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-
-        //    if (result.Succeeded)
-        //    {
-        //        return new Response<string>(model.Email, message: $"Password changed successfully.");
-        //    }
-        //    else
-        //    {
-        //        return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)));
-        //    }
-        //}
-
         public async Task<Response<string>> ChangePassword(ChangePasswordRequest model)
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -397,8 +406,6 @@ namespace Infrastructure.Identity.Services
                 return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)), succeeded: false);
             }
         }
-
-
         public List<int> GetUserIdsByRoleAsync(string role)
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(role).Result.Select(x => x.Email).ToList();
@@ -674,6 +681,7 @@ namespace Infrastructure.Identity.Services
 
             return userIds;
         }
+
         //To Get All Admimn
         public List<int> GetAdminsAsync()
         {
