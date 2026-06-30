@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace Domain.Common
+namespace Application.DTOs.CommonNodes
 {
-    public abstract class AuditableBaseEntity : BaseEntity
+    public class AuditableBaseEntityVM : BaseEntityVM
     {
         public string? CreatedBy { get; set; }
         public DateTime Created { get; set; }
@@ -11,6 +11,6 @@ namespace Domain.Common
         public DateTime? Deleted { get; set; }
         public string? DeletedBy { get; set; }
         public bool IsDeleted { get; set; }
-
     }
+
 }
