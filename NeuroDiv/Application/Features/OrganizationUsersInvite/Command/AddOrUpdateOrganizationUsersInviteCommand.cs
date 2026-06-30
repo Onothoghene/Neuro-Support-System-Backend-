@@ -8,22 +8,22 @@ using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
 
-namespace Application.Features.Comment.Command
+namespace Application.Features.OrganizationUsersInvite.Command
 {
-    public class AddOrUpdateOrganizationRolesCommand : IRequest<Response<bool>>
+    public class AddOrUpdateOrganizationUsersInviteCommand : IRequest<Response<bool>>
     {
         public int? Id { get; set; }
         public int FoodId { get; set; }
         public string CommentText { get; set; }
         public double Rating { get; set; }
 
-        public class AddOrUpdateCommentCommandHandler : IRequestHandler<AddOrUpdateOrganizationRolesCommand, Response<bool>>
+        public class AddOrUpdateOrganizationUsersInviteCommandHandler : IRequestHandler<AddOrUpdateOrganizationUsersInviteCommand, Response<bool>>
         {
             private readonly IMapper _mapper;
             private readonly IAuthenticatedUserService _user;
             private readonly ICommentRepositoryAsync _commentRepository;
 
-            public AddOrUpdateCommentCommandHandler(IMapper mapper, IAuthenticatedUserService user,
+            public AddOrUpdateOrganizationUsersInviteCommandHandler(IMapper mapper, IAuthenticatedUserService user,
                                                    ICommentRepositoryAsync commentRepository)
             {
                 _mapper = mapper;
@@ -31,7 +31,7 @@ namespace Application.Features.Comment.Command
                 _commentRepository = commentRepository;
             }
 
-            public async Task<Response<bool>> Handle(AddOrUpdateOrganizationRolesCommand command, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(AddOrUpdateOrganizationUsersInviteCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
@@ -42,7 +42,7 @@ namespace Application.Features.Comment.Command
                     {
                         var comment = await _commentRepository.GetByIdAsync(command.Id.Value);
                         if (comment == null)
-                            throw new ApiException($"The requested comment could not be found.");
+                            throw new ApiException($"The requested organization user invite could not be found.");
 
                         comment.Rating = command.Rating;
                         comment.CommentText = command.CommentText;

@@ -6,28 +6,24 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
-using Application.DTOs.OrganizationUsersInvite;
-using Application.DTOs.OrganizationUserRoles;
-using Application.DTOs.OrganizationUsers;
-using Application.DTOs.Organizations;
 
-namespace Application.Features.Comment.Query
+namespace Application.Features.OrganizationUserRoles.Query
 {
-    public class GetByIdQuery : IRequest<Response<CommentVM>>
+    public class GetOrganizationUserRolesByIdQuery : IRequest<Response<CommentVM>>
     {
         public int commentId { get; set; }
 
-        public class GetCommentByIdQueryHandler : IRequestHandler<GetByIdQuery, Response<CommentVM>>
+        public class GetOrganizationUserRolesByIdQueryHandler : IRequestHandler<GetOrganizationUserRolesByIdQuery, Response<CommentVM>>
         {
             private readonly ICommentRepositoryAsync _commentRepository;
             private readonly IMapper _mapper;
 
-            public GetCommentByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
+            public GetOrganizationUserRolesByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
             {
                 _commentRepository = commentRepository;
                 _mapper = mapper;
             }
-            public async Task<Response<CommentVM>> Handle(GetByIdQuery query, CancellationToken cancellationToken)
+            public async Task<Response<CommentVM>> Handle(GetOrganizationUserRolesByIdQuery query, CancellationToken cancellationToken)
             {
                 var response = await _commentRepository.GetByIdAsync(query.commentId);
                 if (response == null) throw new ApiException($"The requested comment could not be found.");

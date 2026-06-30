@@ -14,7 +14,7 @@ namespace Application.Mappings
     {
         public CommentProfile()
         {
-            CreateMap<AddOrUpdateCommentCommand, Comments>();
+            CreateMap<AddOrUpdateOrganizationRolesCommand, Comments>();
 
             CreateMap<Comments, CommentVM>();
 

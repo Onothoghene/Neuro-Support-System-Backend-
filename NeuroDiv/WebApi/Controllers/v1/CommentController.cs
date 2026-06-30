@@ -20,7 +20,7 @@ namespace WebApi.Controllers.v1
         [HttpGet("{id?}")]
         public async Task<IActionResult> GetCommentsById(int id)
         {
-            return Ok(await Mediator.Send(new GetCommentByIdQuery { commentId = id }));
+            return Ok(await Mediator.Send(new GetByIdQuery { commentId = id }));
         }
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace WebApi.Controllers.v1
         /// <returns></returns>
         [Authorize]
         [HttpPut("")]
-        public async Task<IActionResult> AddOrUpdateComments(AddOrUpdateCommentCommand command)
+        public async Task<IActionResult> AddOrUpdateComments(AddOrUpdateOrganizationRolesCommand command)
         {
             return Ok(await Mediator.Send(command));
         }
@@ -70,7 +70,7 @@ namespace WebApi.Controllers.v1
         [HttpDelete("{Id}")]
         public async Task<IActionResult> DeleteCommentById(int Id)
         {
-            return Ok(await Mediator.Send(new DeleteCommentCommand { commentId = Id }));
+            return Ok(await Mediator.Send(new DeleteOrganizationRolesCommand { commentId = Id }));
         }
 
     }

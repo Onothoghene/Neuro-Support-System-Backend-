@@ -6,23 +6,23 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
 
-namespace Application.Features.Comment.Command
+namespace Application.Features.Organizations.Command
 {
-    public class DeleteOrganizationRolesCommand : IRequest<Response<bool>>
+    public class DeleteOrganizationsCommand : IRequest<Response<bool>>
     {
         public int commentId { get; set; }
 
-        public class DeleteCommentCommandHandler : IRequestHandler<DeleteOrganizationRolesCommand, Response<bool>>
+        public class DeleteOrganizationsCommandHandler : IRequestHandler<DeleteOrganizationsCommand, Response<bool>>
         {
             private readonly ICommentRepositoryAsync _commentRepository;
 
-            public DeleteCommentCommandHandler(IUserProfileRepositoryAsync userProfile,
+            public DeleteOrganizationsCommandHandler(IUserProfileRepositoryAsync userProfile,
                                               ICommentRepositoryAsync commentRepository)
             {
                 _commentRepository = commentRepository;
             }
 
-            public async Task<Response<bool>> Handle(DeleteOrganizationRolesCommand command, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(DeleteOrganizationsCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {

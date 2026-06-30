@@ -8,22 +8,22 @@ using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
 
-namespace Application.Features.Comment.Command
+namespace Application.Features.OrganizationUserRoles.Command
 {
-    public class AddOrUpdateOrganizationRolesCommand : IRequest<Response<bool>>
+    public class AddOrUpdateOrganizationUserRolesCommand : IRequest<Response<bool>>
     {
         public int? Id { get; set; }
         public int FoodId { get; set; }
         public string CommentText { get; set; }
         public double Rating { get; set; }
 
-        public class AddOrUpdateCommentCommandHandler : IRequestHandler<AddOrUpdateOrganizationRolesCommand, Response<bool>>
+        public class AddOrUpdateOrganizationUserRolesCommandHandler : IRequestHandler<AddOrUpdateOrganizationUserRolesCommand, Response<bool>>
         {
             private readonly IMapper _mapper;
             private readonly IAuthenticatedUserService _user;
             private readonly ICommentRepositoryAsync _commentRepository;
 
-            public AddOrUpdateCommentCommandHandler(IMapper mapper, IAuthenticatedUserService user,
+            public AddOrUpdateOrganizationUserRolesCommandHandler(IMapper mapper, IAuthenticatedUserService user,
                                                    ICommentRepositoryAsync commentRepository)
             {
                 _mapper = mapper;
@@ -31,7 +31,7 @@ namespace Application.Features.Comment.Command
                 _commentRepository = commentRepository;
             }
 
-            public async Task<Response<bool>> Handle(AddOrUpdateOrganizationRolesCommand command, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(AddOrUpdateOrganizationUserRolesCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {

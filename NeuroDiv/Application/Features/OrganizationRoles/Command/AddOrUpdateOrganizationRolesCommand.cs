@@ -8,7 +8,7 @@ using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
 
-namespace Application.Features.Comment.Command
+namespace Application.Features.OrganizationRoles.Command
 {
     public class AddOrUpdateOrganizationRolesCommand : IRequest<Response<bool>>
     {

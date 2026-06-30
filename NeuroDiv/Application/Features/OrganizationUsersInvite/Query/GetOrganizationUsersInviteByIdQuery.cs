@@ -6,31 +6,27 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
-using Application.DTOs.OrganizationUsersInvite;
-using Application.DTOs.OrganizationUserRoles;
-using Application.DTOs.OrganizationUsers;
-using Application.DTOs.Organizations;
 
-namespace Application.Features.Comment.Query
+namespace Application.Features.OrganizationUsersInvite.Query
 {
-    public class GetByIdQuery : IRequest<Response<CommentVM>>
+    public class GetOrganizationUsersInviteByIdQuery : IRequest<Response<CommentVM>>
     {
         public int commentId { get; set; }
 
-        public class GetCommentByIdQueryHandler : IRequestHandler<GetByIdQuery, Response<CommentVM>>
+        public class GetOrganizationUsersInviteByIdQueryHandler : IRequestHandler<GetOrganizationUsersInviteByIdQuery, Response<CommentVM>>
         {
             private readonly ICommentRepositoryAsync _commentRepository;
             private readonly IMapper _mapper;
 
-            public GetCommentByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
+            public GetOrganizationUsersInviteByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
             {
                 _commentRepository = commentRepository;
                 _mapper = mapper;
             }
-            public async Task<Response<CommentVM>> Handle(GetByIdQuery query, CancellationToken cancellationToken)
+            public async Task<Response<CommentVM>> Handle(GetOrganizationUsersInviteByIdQuery query, CancellationToken cancellationToken)
             {
                 var response = await _commentRepository.GetByIdAsync(query.commentId);
-                if (response == null) throw new ApiException($"The requested comment could not be found.");
+                if (response == null) throw new ApiException($"The requested organization user invite could not be found.");
                 return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
             }
         }

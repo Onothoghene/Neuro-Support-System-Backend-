@@ -6,34 +6,34 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
 
-namespace Application.Features.Comment.Command
+namespace Application.Features.OrganizationUsersInvite.Command
 {
-    public class DeleteOrganizationRolesCommand : IRequest<Response<bool>>
+    public class DeleteOrganizationUsersInviteCommand : IRequest<Response<bool>>
     {
         public int commentId { get; set; }
 
-        public class DeleteCommentCommandHandler : IRequestHandler<DeleteOrganizationRolesCommand, Response<bool>>
+        public class DeleteOrganizationUsersInviteCommandHandler : IRequestHandler<DeleteOrganizationUsersInviteCommand, Response<bool>>
         {
             private readonly ICommentRepositoryAsync _commentRepository;
 
-            public DeleteCommentCommandHandler(IUserProfileRepositoryAsync userProfile,
+            public DeleteOrganizationUsersInviteCommandHandler(IUserProfileRepositoryAsync userProfile,
                                               ICommentRepositoryAsync commentRepository)
             {
                 _commentRepository = commentRepository;
             }
 
-            public async Task<Response<bool>> Handle(DeleteOrganizationRolesCommand command, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(DeleteOrganizationUsersInviteCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
                     var data = await _commentRepository.GetByIdAsync(command.commentId) ?? 
-                                                            throw new ApiException($"The requested comment could not be found.");
+                                                            throw new ApiException($"The requested organization user invite could not be found.");
 
                     //data.IsDeleted = true;
                     await _commentRepository.DeleteAsync(data);
 
                     ts.Complete();
-                    return new Response<bool>(true, "Food Comment deleted successfully");
+                    return new Response<bool>(true, "Organization user invite deleted successfully");
 
                 }
             }
