@@ -35,12 +35,17 @@ namespace Infrastructure.Persistence
             services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>();
 
             services.AddTransient<IUserProfileRepositoryAsync, UserProfileRepositoryAsync>();
+            services.AddTransient<IOrganizationUsersInviteRepositoryAsync, OrganizationUsersInviteRepositoryAsync>();
+            services.AddTransient<IOrganizationRolesRepositoryAsync, OrganizationRolesRepositoryAsync>();
+            services.AddTransient<IOrganizationUserRolesRepositoryAsync, OrganizationUserRolesRepositoryAsync>();
+            services.AddTransient<IOrganizationsRepositoryAsync, OrganizationsRepositoryAsync>();
+            services.AddTransient<IOrganizationRolesRepositoryAsync, OrganizationRolesRepositoryAsync>();
+
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             //services.AddTransient<IAddressRepositoryAsync, AddressRepositoryAsync>();
             services.AddTransient<ICommentRepositoryAsync, CommentRepositoryAsync>();
             services.AddTransient<IFileTempRepositoryAsync, FileTempRepositoryAsync>();
             services.AddTransient<IPaymentRepositoryAsync, PaymentRepositoryAsync>();
-
 
             #endregion
         }

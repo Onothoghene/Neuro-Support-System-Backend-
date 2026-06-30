@@ -1,0 +1,16 @@
+﻿using Domain.Common;
+using System;
+
+namespace Domain.Entities
+{
+    public class OrganizationUserRoles : AuditableBaseEntity
+    {
+        public Guid UserId { get; set; }
+        public Guid OrganizationId { get; set; }
+        public Guid OrganizationRoleId { get; set; }
+
+        public UserProfile User { get; set; }
+        public Organizations Organizations { get; set; }
+        public OrganizationRoles OrganizationRoles { get; set; }
+    }
+}

@@ -6,13 +6,13 @@ namespace Domain.Common
 {
     public abstract class AuditableBaseEntity
     {
-        public virtual int Id { get; set; }
-        public int? CreatedBy { get; set; }
+        public virtual Guid Id { get; set; }
+        public string? CreatedBy { get; set; }
         public DateTime Created { get; set; }
-        public int? LastModifiedBy { get; set; }
+        public string? LastModifiedBy { get; set; }
         public DateTime? LastModified { get; set; }
         public DateTime? Deleted { get; set; }
-        public int? DeletedBy { get; set; }
+        public string? DeletedBy { get; set; }
         public bool IsDeleted { get; set; }
 
     }
