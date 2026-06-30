@@ -13,13 +13,13 @@ namespace WebApi.Controllers.v1
     public class PersonalDetailsController : BaseApiController
     {
         [HttpGet("user/{id?}")]
-        public async Task<IActionResult> GetPersonalDetailsByUserId(int id)
+        public async Task<IActionResult> GetPersonalDetailsByUserId(string id)
         {
             return Ok(await Mediator.Send(new GetPersonalDetailsByIdQuery { Id = id }));
         }
 
         [HttpGet("user/lite/{id?}")]
-        public async Task<IActionResult> GetPersonalDetailsByUserIdLite(int id)
+        public async Task<IActionResult> GetPersonalDetailsByUserIdLite(string id)
         {
             return Ok(await Mediator.Send(new GetPersonalDetailsByIdLiteQuery { Id = id }));
         }

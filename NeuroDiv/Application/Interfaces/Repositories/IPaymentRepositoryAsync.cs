@@ -7,7 +7,7 @@ namespace Application.Interfaces.Repositories
     public interface IPaymentRepositoryAsync : IGenericRepositoryAsync<Payment>
     {
         //Task<Payment> GetPaymentByIdAsync(int id);
-        Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(int orderId);
-        Task<Payment> GetPaymentByOrderIdAsync(int orderId);
+        Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(string orderId);
+        Task<Payment> GetPaymentByOrderIdAsync(string orderId);
     }
 }

@@ -30,9 +30,10 @@ namespace Infrastructure.Persistence.Repositories
             return file;
         }
 
-        public IQueryable<FileTemp> GetFileTempByMenuItemId(int menuItemId)
+        public IQueryable<FileTemp> GetFileTempByMenuItemId(string menuItemId)
         {
-           return _fileTemps.Where(x => x.Id == menuItemId);
+            Guid menuItemGuidId = Guid.Parse(menuItemId);
+            return _fileTemps.Where(x => x.Id == menuItemGuidId);
         }
 
     }

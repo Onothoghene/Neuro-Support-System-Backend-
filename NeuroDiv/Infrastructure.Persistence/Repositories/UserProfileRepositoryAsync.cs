@@ -32,73 +32,67 @@ namespace Infrastructure.Persistence.Repositories
             return _userProfile.Where(x => x.Email == email).FirstOrDefaultAsync();
         }
 
-        public Task<UserProfile> GetUserByIdAsync(int userId)
+        public Task<UserProfile> GetUserByIdAsync(string userId)
         {
-            return _userProfile.Where(x => x.Id == userId)
+            Guid userIdGuid = Guid.Parse(userId);
+            return _userProfile.Where(x => x.Id == userIdGuid)
                 .FirstOrDefaultAsync();
         }
 
-        public Task<UserProfile> GetUserProfileByIdAsync(int userId)
+        public Task<UserProfile> GetUserProfileByIdAsync(string userId)
         {
-            return _userProfile.Where(x => x.Id == userId)
+            Guid userIdGuid = Guid.Parse(userId);
+            return _userProfile.Where(x => x.Id == userIdGuid)
 
                 .FirstOrDefaultAsync();
         }
 
-        public List<int> GetUserIdsByEmail(List<string> emails)
+        public async Task<List<string>> GetUserIdsByEmail(List<string> emails)
         {
-            var users = _userProfile.Where(x => emails.Contains(x.Email)).ToList();
-            var userIds = users.Select(y => y.Id).ToList();
+            var userIds = await _userProfile.Where(x => emails.Contains(x.Email))
+                                      .Select(x => x.Id.ToString())
+                                      .ToListAsync();
             return userIds;
 
         }
 
-        public IQueryable<UserProfile> GetUserProfilesByIds(List<int> ids)
+        public IQueryable<UserProfile> GetUserProfilesByIds(List<string> ids)
         {
-            var users = _userProfile.Where(x => ids.Contains(x.Id));
+            var userGuids = ids.Select(id => Guid.Parse(id)).ToList();
+            var users = _userProfile.Where(x => userGuids.Contains(x.Id));
 
             return users;
         }
 
-        public IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<int> ids)
+        public IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<string> ids)
         {
-            var users = _userProfile.Where(x => ids.Contains(x.Id));
+            var guidIds = ids.Select(Guid.Parse).ToList();
+
+        //    var guidIds = ids
+        //.Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
+        //.Where(g => g.HasValue)
+        //.Select(g => g.Value)
+        //.ToList();
+
+            var users = _userProfile.Where(x => guidIds.Contains(x.Id));
 
             return users;
         }
 
-        public Task<UserProfile> GetUserProfilesByIdLite(int id)
+        public Task<UserProfile> GetUserProfilesByIdLite(string id)
         {
-            var user = _userProfile.Where(x => x.Id == id)
+            Guid IdGuid = Guid.Parse(id);
+            var user = _userProfile.Where(x => x.Id == IdGuid)
                 .FirstOrDefaultAsync();
 
             return user;
         }
 
-        public IQueryable<UserProfile> GetUsersProjectSelections(List<int> studentIds)
-        {
-            return _userProfile.Where(x => x.IsDeleted == false && studentIds.Contains(x.Id));
-                //.Include(r => r.ProjectSelection)
-                //.Include(r => r.StudentSelection);
-        }
 
         public IQueryable<UserProfile> GetAllUsers()
         {
             return _userProfile.AsQueryable();
         }
 
-        public List<int> GetStudentsByEmails(List<string> emails)
-        {
-            var userIds = _userProfile.Where(x => emails.Contains(x.Email)).Select(y => y.Id).ToList();
-
-            return userIds;
-        }
-
-        public List<int> GetSupervisorsByEmails(List<string> emails)
-        {
-            var userIds = _userProfile.Where(x => emails.Contains(x.Email)).Select(y => y.Id).ToList();
-
-            return userIds;
-        }
     }
 }

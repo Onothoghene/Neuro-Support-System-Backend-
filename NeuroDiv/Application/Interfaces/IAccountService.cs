@@ -15,15 +15,15 @@ namespace Application.Interfaces
         Task<Response<string>> ResetPassword(ResetPasswordRequest model);
         Task<Response<string>> ChangePassword(ChangePasswordRequest model);
         Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token);
-        List<int> GetUserIdsByRoleAsync(string role);
+        List<string> GetUserIdsByRoleAsync(string role);
         Task<Response<string>> ResendVerificationMail(string email);
         Task<string> GetUserRoleByEmail(string email);
         Task<string> GetUserRoleById(int userId);
         Task<Response<bool>> VerifyOtp(int otp);
         Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request);
         Task<Response<string>> CreateAdmin(RegisterRequest request);
-        List<int> GetUsersAsync();
-        List<int> GetAdminsAsync();
+        List<string> GetUsersAsync();
+        List<string> GetAdminsAsync();
         Task<Response<bool>> LogOutAsync(string email);
         Task<Response<bool>> LogOutAsync(string email, string refreshToken);
     }

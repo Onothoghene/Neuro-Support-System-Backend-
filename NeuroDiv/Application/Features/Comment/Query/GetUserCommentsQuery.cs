@@ -11,7 +11,7 @@ namespace Application.Features.Comment.Query
 {
     public class GetUserCommentsQuery : IRequest<Response<CommentVM>>
     {
-        public int? userId { get; set; }
+        public string? userId { get; set; }
 
         public class GetUserCommentsQueryHandler : IRequestHandler<GetUserCommentsQuery, Response<CommentVM>>
         {
@@ -28,7 +28,7 @@ namespace Application.Features.Comment.Query
             }
             public async Task<Response<CommentVM>> Handle(GetUserCommentsQuery query, CancellationToken cancellationToken)
             {
-                var user = query.userId.HasValue ? query.userId.Value : _userService.UserId;
+                var user = query.userId is not null ? query.userId : _userService.UserId;
                 var response = await Task.Run(()=> _commentRepository.GetUserComments(user));
                 return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
             }

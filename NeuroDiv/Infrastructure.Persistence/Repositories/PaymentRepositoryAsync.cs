@@ -24,16 +24,18 @@ namespace Infrastructure.Persistence.Repositories
         //    return await _payments.FindAsync(id);
         //}
 
-        public async Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(int orderId)
+        public async Task<IEnumerable<Payment>> GetPaymentsByOrderIdAsync(string orderId)
         {
-            return await _payments.Where(p => p.Id == orderId)
-                                 // .Include(x => x.Order)
+            Guid orderIdGuid = Guid.Parse(orderId);
+            return await _payments.Where(p => p.Id == orderIdGuid)
+                                  // .Include(x => x.Order)
                                   .ToListAsync();
         }
 
-        public async Task<Payment> GetPaymentByOrderIdAsync(int orderId)
+        public async Task<Payment> GetPaymentByOrderIdAsync(string orderId)
         {
-            return await _payments.Where(p => p.Id == orderId).FirstOrDefaultAsync();
+            Guid orderIdGuid = Guid.Parse(orderId);
+            return await _payments.Where(p => p.Id == orderIdGuid).FirstOrDefaultAsync();
         }
 
     }

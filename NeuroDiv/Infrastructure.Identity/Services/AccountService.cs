@@ -98,7 +98,7 @@ namespace Infrastructure.Identity.Services
 
                     var resp = await _userProfile.AddAsync(userProfile);
 
-                    if (resp.Id > 0)
+                    if (resp.Id != null)
                     {
                         var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
 
@@ -206,8 +206,8 @@ namespace Infrastructure.Identity.Services
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user, isOffline);
             AuthenticationResponse response = new AuthenticationResponse
             {
-                Id = user.Id,
-                UserId = userProfile.Id,
+               // IdentityId = user.Id,
+                UserId = userProfile.Id.ToString(),
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 Email = user.Email,
                 UserName = user.UserName,
@@ -311,8 +311,8 @@ namespace Infrastructure.Identity.Services
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse
             {
-                Id = user.Id,
-                UserId = userProfile.Id,
+               // IdentityId = user.Id,
+                UserId = userProfile.Id.ToString(),
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 Email = user.Email,
                 UserName = user.UserName
@@ -406,10 +406,10 @@ namespace Infrastructure.Identity.Services
                 return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)), succeeded: false);
             }
         }
-        public List<int> GetUserIdsByRoleAsync(string role)
+        public List<string> GetUserIdsByRoleAsync(string role)
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(role).Result.Select(x => x.Email).ToList();
-            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).ToList();
+            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;
         }
@@ -651,7 +651,7 @@ namespace Infrastructure.Identity.Services
 
                     var resp = await _userProfile.AddAsync(userProfile);
 
-                    if (resp.Id > 0)
+                    if (resp.Id != null)
                     {
                         return new Response<string>("User registered successfully.");
                     }
@@ -674,19 +674,19 @@ namespace Infrastructure.Identity.Services
         }
 
         //To Get All Users
-        public List<int> GetUsersAsync()
+        public List<string> GetUsersAsync()
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.User.ToString()).Result.Select(x => x.Email).ToList();
-            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).ToList();
+            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;
         }
 
         //To Get All Admimn
-        public List<int> GetAdminsAsync()
+        public List<string> GetAdminsAsync()
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.Admin.ToString()).Result.Select(x => x.Email).ToList();
-            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).ToList();
+            var userIds =  _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;
         }

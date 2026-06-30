@@ -2,20 +2,12 @@
 
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
 
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<DocumentationFile>$(MSBuildThisFileDirectory)bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<NoWarn>$(NoWarn);1591</NoWarn>
 	</PropertyGroup>
-
-	<!--<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile></DocumentationFile>
-    <NoWarn>1701;1702;1591</NoWarn>
-  </PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DocumentationFile>OrderFlow.WebAPI.xml</DocumentationFile>
-	</PropertyGroup>-->
 
 	<ItemGroup>
 		<Content Remove="EmailTemplate\ConfirmEmail.cshtml" />

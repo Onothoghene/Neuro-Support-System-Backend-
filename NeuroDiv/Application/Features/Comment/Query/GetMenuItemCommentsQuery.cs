@@ -11,7 +11,7 @@ namespace Application.Features.Comment.Query
 {
     public class GetMenuItemCommentsQuery : IRequest<Response<List<CommentVM>>>
     {
-        public int menuItemId { get; set; }
+        public required string menuItemId { get; set; }
 
         public class GetMenuItemCommentsQueryHandler : IRequestHandler<GetMenuItemCommentsQuery, Response<List<CommentVM>>>
         {

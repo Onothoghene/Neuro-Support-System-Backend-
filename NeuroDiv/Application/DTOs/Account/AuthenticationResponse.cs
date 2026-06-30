@@ -7,8 +7,8 @@ namespace Application.DTOs.Account
 {
     public class AuthenticationResponse
     {
-        public string Id { get; set; }
-        public int UserId { get; set; }
+        //public string IdentityId { get; set; }
+        public string UserId { get; set; }
         public string UserName { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }

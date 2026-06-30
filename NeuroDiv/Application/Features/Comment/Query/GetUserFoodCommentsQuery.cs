@@ -11,8 +11,8 @@ namespace Application.Features.Comment.Query
 {
     public class GetUserFoodCommentsQuery : IRequest<Response<CommentVM>>
     {
-        public int? userId { get; set; }
-        public int foodId { get; set; }
+        public string? userId { get; set; }
+        public string? foodId { get; set; }
 
         public class GetUserFoodCommentsQueryHandler : IRequestHandler<GetUserFoodCommentsQuery, Response<CommentVM>>
         {
@@ -29,7 +29,7 @@ namespace Application.Features.Comment.Query
             }
             public async Task<Response<CommentVM>> Handle(GetUserFoodCommentsQuery query, CancellationToken cancellationToken)
             {
-                var user = query.userId.HasValue ? query.userId.Value : _userService.UserId;
+                var user = query.userId is not null ? query.userId : _userService.UserId;
                 var response = await Task.Run(()=> _commentRepository.GetUserFoodComments(user, query.foodId));
                 return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
             }

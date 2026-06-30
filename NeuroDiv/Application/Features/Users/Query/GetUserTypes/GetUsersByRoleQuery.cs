@@ -39,7 +39,7 @@ namespace Application.Features.Users.Query.GetUserTypes
                     var response = new GenericSettingsViewModel
                     {
                         Name = $"{item.FirstName} {item.LastName}",
-                        Id = item.Id,
+                        Id = item.Id.ToString(),
                     };
 
                     roleUsers.Add(response);

@@ -30,7 +30,7 @@ namespace WebApi.Controllers.v1
         /// <returns></returns>
         [AllowAnonymous]
         [HttpGet("menu-item/{menuItemId?}")]
-        public async Task<IActionResult> GetMenuItemComments(int menuItemId)
+        public async Task<IActionResult> GetMenuItemComments(string menuItemId)
         {
             return Ok(await Mediator.Send(new GetMenuItemCommentsQuery { menuItemId = menuItemId }));
         }
@@ -48,7 +48,7 @@ namespace WebApi.Controllers.v1
         }
 
         [HttpGet("menu-item/{userId?}/user")]
-        public async Task<IActionResult> GetUserComments(int userId)
+        public async Task<IActionResult> GetUserComments(string userId)
         {
             return Ok(await Mediator.Send(new GetUserCommentsQuery { userId = userId }));
         }
@@ -61,7 +61,7 @@ namespace WebApi.Controllers.v1
         /// <returns></returns>
         [Authorize]
         [HttpGet("menu-item/{menuItemId?}/user/{userId?}")]
-        public async Task<IActionResult> GetUserComments(int userId, int menuItemId)
+        public async Task<IActionResult> GetUserComments(string userId, string menuItemId)
         {
             return Ok(await Mediator.Send(new GetUserFoodCommentsQuery { userId = userId, foodId = menuItemId }));
         }

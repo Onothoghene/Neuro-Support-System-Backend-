@@ -12,11 +12,11 @@ namespace WebApi.Services
     {
         public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
         {
-            UserId = Convert.ToInt32(httpContextAccessor.HttpContext?.User?.FindFirstValue("uid"));
+            UserId = Convert.ToString(httpContextAccessor.HttpContext?.User?.FindFirstValue("uid"));
             Role = httpContextAccessor.HttpContext?.User?.FindFirstValue("rol");
         }
 
-        public int UserId { get; }
+        public string UserId { get; }
         public string Role { get; }
     }
 }

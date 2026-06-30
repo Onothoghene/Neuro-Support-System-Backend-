@@ -4,20 +4,19 @@ using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
 using MediatR;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Application.Features.PersonalDetails.Command.Update
 {
-    public class UpdatePersonalDetailsByUserIdCommand : IRequest<Response<int>>
+    public class UpdatePersonalDetailsByUserIdCommand : IRequest<Response<bool>>
     {
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
-        public class UpdatePersonalDetailsByUserIdCommandHandler : IRequestHandler<UpdatePersonalDetailsByUserIdCommand, Response<int>>
+        public class UpdatePersonalDetailsByUserIdCommandHandler : IRequestHandler<UpdatePersonalDetailsByUserIdCommand, Response<bool>>
         {
             private readonly IUserProfileRepositoryAsync _userProfileRepo;
             private readonly IMapper _mapper;
@@ -32,9 +31,9 @@ namespace Application.Features.PersonalDetails.Command.Update
                 _user = user;
             }
 
-            public async Task<Response<int>> Handle(UpdatePersonalDetailsByUserIdCommand request, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(UpdatePersonalDetailsByUserIdCommand request, CancellationToken cancellationToken)
             {
-                int userId = _user.UserId;
+                string userId = _user.UserId;
 
                 var userProfile = await _userProfileRepo.GetUserByIdAsync(userId);
 
@@ -50,7 +49,7 @@ namespace Application.Features.PersonalDetails.Command.Update
 
 
 
-                return new Response<int>(userProfile.Id, "Personal details updated successfully");
+                return new Response<bool>(true, "Personal details updated successfully");
             }
         }
     }

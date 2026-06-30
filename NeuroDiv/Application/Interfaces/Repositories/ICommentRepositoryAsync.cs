@@ -6,9 +6,9 @@ namespace Application.Interfaces.Repositories
 {
     public interface ICommentRepositoryAsync : IGenericRepositoryAsync<Comments>
     {
-        IQueryable<Comments> GetFoodComments(int foodId);
-        Task<Comments> GetCommentById(int id);
-        IQueryable<Comments> GetUserComments(int userId);
-        IQueryable<Comments> GetUserFoodComments(int userId, int foodId);
+        IQueryable<Comments> GetFoodComments(string foodId);
+        Task<Comments> GetCommentById(string id);
+        IQueryable<Comments> GetUserComments(string userId);
+        IQueryable<Comments> GetUserFoodComments(string userId, string foodId);
     }
 }

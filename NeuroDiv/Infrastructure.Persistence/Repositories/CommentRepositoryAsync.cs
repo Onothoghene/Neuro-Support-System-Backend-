@@ -20,24 +20,27 @@ namespace Infrastructure.Persistence.Repositories
             _comments = dbContext.Set<Comments>();
         }
 
-        public Task<Comments> GetCommentById(int id)
+        public Task<Comments> GetCommentById(string id)
         {
-            return _comments.FirstOrDefaultAsync(c => c.Id == id);
+            Guid IdGuid = Guid.Parse(id);
+            return _comments.FirstOrDefaultAsync(c => c.Id == IdGuid);
         }
 
-        public IQueryable<Comments> GetFoodComments(int foodId)
+        public IQueryable<Comments> GetFoodComments(string foodId)
         {
-            return _comments.Where(x => x.Id == foodId);
+            Guid foodIdGuid = Guid.Parse(foodId);
+            return _comments.Where(x => x.Id == foodIdGuid);
         }
 
-        public IQueryable<Comments> GetUserComments(int userId)
+        public IQueryable<Comments> GetUserComments(string userId)
         {
             return _comments.Where(x => x.CreatedBy  == userId);
         }
 
-        public IQueryable<Comments> GetUserFoodComments(int userId, int foodId)
+        public IQueryable<Comments> GetUserFoodComments(string userId, string foodId)
         {
-            return _comments.Where(x => x.CreatedBy == userId &&  x.Id == foodId);
+            Guid foodIdGuid = Guid.Parse(foodId);
+            return _comments.Where(x => x.CreatedBy == userId &&  x.Id == foodIdGuid);
         }
     }
 }

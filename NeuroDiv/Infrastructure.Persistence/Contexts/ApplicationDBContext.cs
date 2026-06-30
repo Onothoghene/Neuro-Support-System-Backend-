@@ -34,11 +34,11 @@ namespace Infrastructure.Persistence.Contexts
         {
             foreach (var entry in ChangeTracker.Entries<AuditableBaseEntity>())
             {
-                int? authUser;
+                string authUser;
 
-                if (_authenticatedUser.UserId != 0)
+                if (_authenticatedUser.UserId != null)
                 {
-                    authUser = _authenticatedUser.UserId;
+                    authUser = _authenticatedUser.UserId.ToString();
                 }
                 else
                 {

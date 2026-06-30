@@ -12,7 +12,7 @@ namespace Application.Features.PersonalDetails.Query.GetById
 {
     public class GetPersonalDetailsByIdLiteQuery : IRequest<Response<PersonalDetailsVM>>
     {
-        public int? Id { get; set; }
+        public string? Id { get; set; }
 
         public class GetPersonalDetailsByIdLiteQueryHandler : IRequestHandler<GetPersonalDetailsByIdLiteQuery, Response<PersonalDetailsVM>>
         {
@@ -29,7 +29,7 @@ namespace Application.Features.PersonalDetails.Query.GetById
 
             public async Task<Response<PersonalDetailsVM>>Handle(GetPersonalDetailsByIdLiteQuery request, CancellationToken cancellationToken)
             {
-                var userId = request.Id.HasValue && request.Id.Value > 0 ? request.Id.Value : _user.UserId;
+                var userId = request.Id is not null ? request.Id : _user.UserId;
 
                 var personalDetails = await _userProfile.GetUserByIdAsync(userId);
 

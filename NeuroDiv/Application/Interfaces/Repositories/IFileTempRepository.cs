@@ -7,6 +7,6 @@ namespace Application.Interfaces.Repositories
     {
         IQueryable<FileTemp> GetFileTemps();
         FileTemp GetFileTempByUniqueName(string fileUniqueName);
-        IQueryable<FileTemp> GetFileTempByMenuItemId(int menuItemId);
+        IQueryable<FileTemp> GetFileTempByMenuItemId(string menuItemId);
     }
 }
