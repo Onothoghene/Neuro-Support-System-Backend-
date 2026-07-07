@@ -6,28 +6,29 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
+using Application.DTOs.OrganizationUsersInvite;
 
 namespace Application.Features.OrganizationUsersInvite.Query
 {
-    public class GetOrganizationUsersInviteByIdQuery : IRequest<Response<CommentVM>>
+    public class GetOrganizationUsersInviteByIdQuery : IRequest<Response<OrganizationUserInviteVM>>
     {
-        public int commentId { get; set; }
+        public int Id { get; set; }
 
-        public class GetOrganizationUsersInviteByIdQueryHandler : IRequestHandler<GetOrganizationUsersInviteByIdQuery, Response<CommentVM>>
+        public class GetOrganizationUsersInviteByIdQueryHandler : IRequestHandler<GetOrganizationUsersInviteByIdQuery, Response<OrganizationUserInviteVM>>
         {
-            private readonly ICommentRepositoryAsync _commentRepository;
+            private readonly IOrganizationUsersInviteRepositoryAsync _organizationUsersInviteRepository;
             private readonly IMapper _mapper;
 
-            public GetOrganizationUsersInviteByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
+            public GetOrganizationUsersInviteByIdQueryHandler(IOrganizationUsersInviteRepositoryAsync organizationUsersInviteRepository, IMapper mapper)
             {
-                _commentRepository = commentRepository;
+                _organizationUsersInviteRepository = organizationUsersInviteRepository;
                 _mapper = mapper;
             }
-            public async Task<Response<CommentVM>> Handle(GetOrganizationUsersInviteByIdQuery query, CancellationToken cancellationToken)
+            public async Task<Response<OrganizationUserInviteVM>> Handle(GetOrganizationUsersInviteByIdQuery query, CancellationToken cancellationToken)
             {
-                var response = await _commentRepository.GetByIdAsync(query.commentId);
+                var response = await _organizationUsersInviteRepository.GetByIdAsync(query.Id);
                 if (response == null) throw new ApiException($"The requested organization user invite could not be found.");
-                return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
+                return new Response<OrganizationUserInviteVM>(_mapper.Map<OrganizationUserInviteVM>(response), "successful");
             }
         }
     }
