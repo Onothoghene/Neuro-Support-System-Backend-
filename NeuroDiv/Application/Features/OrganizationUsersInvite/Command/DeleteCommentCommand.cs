@@ -1,39 +1,54 @@
 ﻿using Application.Exceptions;
+using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using MediatR;
-using System.Threading.Tasks;
+using System;
+using System.ComponentModel;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Transactions;
 
 namespace Application.Features.OrganizationUsersInvite.Command
 {
     public class DeleteOrganizationUsersInviteCommand : IRequest<Response<bool>>
     {
-        public int commentId { get; set; }
+        public int Id { get; set; }
 
         public class DeleteOrganizationUsersInviteCommandHandler : IRequestHandler<DeleteOrganizationUsersInviteCommand, Response<bool>>
         {
-            private readonly ICommentRepositoryAsync _commentRepository;
+            private readonly IAuthenticatedUserService _user;
+            private readonly IOrganizationUsersInviteRepositoryAsync _organizationUsersInviteRepository;
 
-            public DeleteOrganizationUsersInviteCommandHandler(IUserProfileRepositoryAsync userProfile,
-                                              ICommentRepositoryAsync commentRepository)
+            public DeleteOrganizationUsersInviteCommandHandler(IAuthenticatedUserService user,
+                                                               IOrganizationUsersInviteRepositoryAsync organizationUsersInviteRepository)
             {
-                _commentRepository = commentRepository;
+                _user = user;
+                _organizationUsersInviteRepository = organizationUsersInviteRepository;
             }
 
             public async Task<Response<bool>> Handle(DeleteOrganizationUsersInviteCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var data = await _commentRepository.GetByIdAsync(command.commentId) ?? 
+                    var invite = await _organizationUsersInviteRepository.GetByIdAsync(command.Id) ?? 
                                                             throw new ApiException($"The requested organization user invite could not be found.");
 
-                    //data.IsDeleted = true;
-                    await _commentRepository.DeleteAsync(data);
+                    // Can't delete an invite that has already been accepted —
+                    // the user is already a member at that point
+                    if (invite.IsAccepted)
+                        throw new ApiException("This invitation has already been accepted and cannot be deleted.");
+                    
+                    // Soft delete — preserves the record for audit trail
+                    invite.IsDeleted = true;
+                    invite.Deleted = DateTime.Now;
+                    invite.DeletedBy = _user.UserId;
+
+                    await _organizationUsersInviteRepository.UpdateAsync(invite);
 
                     ts.Complete();
-                    return new Response<bool>(true, "Organization user invite deleted successfully");
+
+                    return new Response<bool>(true, "Organization user invite deleted successfully.");
 
                 }
             }

@@ -41,9 +41,7 @@ namespace Infrastructure.Shared
             services.AddFluentEmail(mailOption[nameof(MailSettings.EmailFrom)])
                     .AddRazorRenderer(Directory.GetCurrentDirectory())
                     .AddSmtpSender(client);
-                    
-
-
+            
             services.AddSingleton<IFileUploadService, FileUploadService>();
 
         }
