@@ -31,5 +31,15 @@ namespace Infrastructure.Persistence.Repositories
                                                  .ToListAsync();
         }
 
+        public async Task<OrganizationUsersInvite?> GetPendingInviteByEmailAndOrgAsync(string email, Guid organizationId)
+        {
+            return await _organizationUsersInvite.Where(i => i.Email == email 
+                                                        && i.OrganizationId == organizationId
+                                                        && !i.IsAccepted
+                                                        && !i.IsDeleted
+                                                        && i.ExpiryDate > DateTime.Now)
+                                                 .FirstOrDefaultAsync();
+        }
+
     }
 }

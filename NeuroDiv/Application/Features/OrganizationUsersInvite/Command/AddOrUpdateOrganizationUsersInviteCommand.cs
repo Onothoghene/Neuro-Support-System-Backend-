@@ -16,21 +16,25 @@ namespace Application.Features.OrganizationUsersInvite.Command
         public Guid? Id { get; set; }
         public required string FirstName { get; set; }
         public required string LastName { get; set; }
-        public string CommentText { get; set; }
-        public double Rating { get; set; }
+        public required string Email { get; set; }
+        //public string Token { get; set; } // Unique link token
+        public Guid OrganizationId { get; set; }
 
         public class AddOrUpdateOrganizationUsersInviteCommandHandler : IRequestHandler<AddOrUpdateOrganizationUsersInviteCommand, Response<bool>>
         {
             private readonly IMapper _mapper;
             private readonly IAuthenticatedUserService _user;
             private readonly IOrganizationUsersInviteRepositoryAsync _organizationUsersInviteRepository;
+            private readonly IEmailService _emailService;  
 
             public AddOrUpdateOrganizationUsersInviteCommandHandler(IMapper mapper, IAuthenticatedUserService user,
-                                                                    IOrganizationUsersInviteRepositoryAsync organizationUsersInviteRepository)
+                                                                    IOrganizationUsersInviteRepositoryAsync organizationUsersInviteRepository,
+                                                                    IEmailService emailService)
             {
                 _mapper = mapper;
                 _user = user;
                 _organizationUsersInviteRepository = organizationUsersInviteRepository;
+                _emailService = emailService;
             }
 
             public async Task<Response<bool>> Handle(AddOrUpdateOrganizationUsersInviteCommand command, CancellationToken cancellationToken)
@@ -42,20 +46,58 @@ namespace Application.Features.OrganizationUsersInvite.Command
                     //Update functionality
                     if (command.Id.HasValue && command.Id is not null)
                     {
-                        var comment = await _organizationUsersInviteRepository.GetByIdAsync(command.Id.Value);
-                        if (comment == null)
+                        var orgUserInvite = await _organizationUsersInviteRepository.GetByIdAsync(command.Id.Value);
+                        
+                        if (orgUserInvite == null)
                             throw new ApiException($"The requested organization user invite could not be found.");
 
-                        //comment.Rating = command.Rating;
-                        //comment.CommentText = command.CommentText;
+                        // Only allow updating a pending invite — not one already accepted
+                        if (orgUserInvite.IsAccepted)
+                            throw new ApiException("This invitation has already been accepted and cannot be modified.");
 
-                        //await _commentRepository.UpdateAsync(comment);
+                        // If the email changed, generate a fresh token and reset expiry
+                        bool emailChanged = !orgUserInvite.Email.Equals(command.Email, StringComparison.OrdinalIgnoreCase);
+
+                        orgUserInvite.FirstName = command.FirstName;
+                        orgUserInvite.LastName = command.LastName;
+                        orgUserInvite.Email = command.Email;
+                        orgUserInvite.OrganizationId = command.OrganizationId;
+                        orgUserInvite.LastModifiedBy = userId;
+                        orgUserInvite.LastModified = DateTime.Now;
+
+                        if (emailChanged)
+                        {
+                           // orgUserInvite.Token = GenerateInviteToken();
+                            orgUserInvite.ExpiryDate = DateTime.UtcNow.AddDays(7);
+                        }
+
+                        await _organizationUsersInviteRepository.UpdateAsync(orgUserInvite);
                     }
-                    else //Create Functionality
+                    //Create Functionality
+                    else
                     {
-                        var data = _mapper.Map<Domain.Entities.Comments>(command);
+                        // Block duplicate pending invites for the same email + org
+                        var existingInvite = await _organizationUsersInviteRepository
+                            .GetPendingInviteByEmailAndOrgAsync(command.Email, command.OrganizationId);
 
-                      //  await _commentRepository.AddAsync(data);
+                        if (existingInvite != null)
+                            throw new ApiException($"A pending invitation for '{command.Email}' already exists for this organization.");
+
+                        var newInvite = _mapper.Map<Domain.Entities.OrganizationUsersInvite>(command);
+
+                      //  newInvite.Token = GenerateInviteToken();
+                        newInvite.ExpiryDate = DateTime.UtcNow.AddDays(7);
+                        newInvite.IsAccepted = false;
+                        newInvite.CreatedBy = userId;
+                        newInvite.Created = DateTime.UtcNow;
+
+                        await _organizationUsersInviteRepository.AddAsync(newInvite);
+
+                        //await SendInviteEmailAsync(
+                        //    newInvite.Email,
+                        //    newInvite.FirstName,
+                        //    newInvite.Token,
+                        //    newInvite.OrganizationId);
                     }
 
                     ts.Complete();
