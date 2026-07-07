@@ -29,21 +29,12 @@ namespace Infrastructure.Shared
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IFileZipService, FileZipService>();
 
-            var host = "smtp-relay.brevo.com";
-            var user = "b0d7ac001@smtp-brevo.com";
-            var password = "xsmtpsib-e182f93a905788400925ce46f0fa988466afb6113365694652b0527616bcf54f-xLJfaEXSeageEWHJ";
-            var port = 587;
-            
-            var client = new SmtpClient
+           var client = new SmtpClient
             {
-                //Credentials = new NetworkCredential(mailOption[nameof(MailSettings.SmtpUser)], mailOption[nameof(MailSettings.SmtpPass)]),
-                Credentials = new NetworkCredential(user, password),
-                Host = host,
-                //Host = mailOption[nameof(MailSettings.SmtpHost)],
-                //Port = Convert.ToInt32(mailOption[nameof(MailSettings.SmtpPort)]),
-                Port = port,
-                //EnableSsl = Convert.ToBoolean(mailOption[nameof(MailSettings.EnableSsl)]),
-                EnableSsl = true,
+                Credentials = new NetworkCredential(mailOption[nameof(MailSettings.SmtpUser)], mailOption[nameof(MailSettings.SmtpPass)]),
+                Host = mailOption[nameof(MailSettings.SmtpHost)],
+                Port = Convert.ToInt32(mailOption[nameof(MailSettings.SmtpPort)]),
+                EnableSsl = Convert.ToBoolean(mailOption[nameof(MailSettings.EnableSsl)]),
                 UseDefaultCredentials = false
             };
 
