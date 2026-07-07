@@ -21,6 +21,6 @@ namespace Domain.Entities
         public string? Address { get; set; }
 
         public ICollection<OrganizationUsers> OrganizationUsers { get; set; }
-        public ICollection<Activity> Activities { get; set; }
+      //  public ICollection<Activity> Activities { get; set; }
     }
 }

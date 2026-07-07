@@ -29,60 +29,28 @@ namespace Infrastructure.Shared
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IFileZipService, FileZipService>();
 
-            //var smtpClient = new SmtpClient
-            //{
-            //    Port = 587,
-            //    EnableSsl = true,
-            //    Host = "smtp.postmarkapp.com",
-
-            //    //UseDefaultCredentials = false,
-            //    Credentials = new NetworkCredential("b8afc2e4-82c9-47ee-8ae2-493274715c53", "b8afc2e4-82c9-47ee-8ae2-493274715c53"),
-            //};
-
-            //services.AddFluentEmail(mailOption[nameof(MailSettings.EmailFrom)])
-            //   //.AddSendGridSender(mailOption[nameof(MailSettings.ApiKey)])
-            //   //.AddPostmarkSender(mailOption[nameof(MailSettings.ApiKey)])
-            //   .AddSmtpSender(smtpClient)
-            //   //.AddRazorRenderer();
-            //   .AddRazorRenderer(Directory.GetCurrentDirectory());
-
-            var client = new System.Net.Mail.SmtpClient();
-            client.Credentials = new NetworkCredential(mailOption[nameof(MailSettings.SmtpUser)], mailOption[nameof(MailSettings.SmtpPass)]);
-            client.Host = mailOption[nameof(MailSettings.SmtpHost)];
-            client.Port = Convert.ToInt32(mailOption[nameof(MailSettings.SmtpPort)]);
-            client.EnableSsl = Convert.ToBoolean(mailOption[nameof(MailSettings.EnableSsl)]);
-            client.UseDefaultCredentials = false;
-            //client.SendCompleted += (s, e) => client.Dispose();
-
-            //services.AddFluentEmail(mailOption[nameof(MailSettings.EmailFrom)])
-            //.AddSmtpSender(client) //NOTE: uncomment if you want to use smtp - recommended for other email delivery services e.g PostMark
-            //                       //.AddSendGridSender(mailOption[nameof(MailSettings.ApiKey)]) //NOTE: uncomment if you want to use sendgrid
-            //.AddRazorRenderer(Directory.GetCurrentDirectory());
-
-            //var client = new SmtpClient(mailOption[nameof(MailSettings.SmtpHost)],
-            //                Convert.ToInt32(mailOption[nameof(MailSettings.SmtpPort)]));
-
-            //client.Credentials = new NetworkCredential(
-            //    mailOption[nameof(MailSettings.SmtpUser)],
-            //    mailOption[nameof(MailSettings.SmtpPass)]
-            //);
-
-            //client.EnableSsl = false; // Disable SSL (Zoho requires STARTTLS)
-            //client.UseDefaultCredentials = false;
-            //client.DeliveryMethod = SmtpDeliveryMethod.Network;
-
-            //// Explicitly enable STARTTLS after connecting
-            //client.SendCompleted += (s, e) => client.Dispose();
-
-            // Manually enable SSL after the connection is established
-            client.EnableSsl = true;
-
-
-
+            var host = "smtp-relay.brevo.com";
+            var user = "b0d7ac001@smtp-brevo.com";
+            var password = "xsmtpsib-e182f93a905788400925ce46f0fa988466afb6113365694652b0527616bcf54f-xLJfaEXSeageEWHJ";
+            var port = 587;
+            
+            var client = new SmtpClient
+            {
+                //Credentials = new NetworkCredential(mailOption[nameof(MailSettings.SmtpUser)], mailOption[nameof(MailSettings.SmtpPass)]),
+                Credentials = new NetworkCredential(user, password),
+                Host = host,
+                //Host = mailOption[nameof(MailSettings.SmtpHost)],
+                //Port = Convert.ToInt32(mailOption[nameof(MailSettings.SmtpPort)]),
+                Port = port,
+                //EnableSsl = Convert.ToBoolean(mailOption[nameof(MailSettings.EnableSsl)]),
+                EnableSsl = true,
+                UseDefaultCredentials = false
+            };
 
             services.AddFluentEmail(mailOption[nameof(MailSettings.EmailFrom)])
-                .AddSmtpSender(client)
-                .AddRazorRenderer(Directory.GetCurrentDirectory());
+                    .AddRazorRenderer(Directory.GetCurrentDirectory())
+                    .AddSmtpSender(client);
+                    
 
 
             services.AddSingleton<IFileUploadService, FileUploadService>();

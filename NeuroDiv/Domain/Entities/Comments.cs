@@ -8,6 +8,6 @@ namespace Domain.Entities
         public string CommentText { get; set; }
         public double Rating { get; set; }
 
-        public UserProfile CreatedByNavigation { get; set; }
+        //public UserProfile CreatedByNavigation { get; set; }
     }
 }

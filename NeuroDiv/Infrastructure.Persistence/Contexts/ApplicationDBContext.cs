@@ -101,13 +101,13 @@ namespace Infrastructure.Persistence.Contexts
 
             });
 
-            builder.Entity<Comments>(entity =>
-            {
-                entity.HasOne(d => d.CreatedByNavigation)
-                 .WithMany()
-                 .HasForeignKey(d => d.CreatedBy)
-                 .HasConstraintName("FK_Comments_UserProfile");
-            });
+            //builder.Entity<Comments>(entity =>
+            //{
+            //    entity.HasOne(d => d.CreatedByNavigation)
+            //     .WithMany()
+            //     .HasForeignKey(d => d.CreatedBy)
+            //     .HasConstraintName("FK_Comments_UserProfile");
+            //});
 
 
             //builder.Entity<FileTemp>(entity =>

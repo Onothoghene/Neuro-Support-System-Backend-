@@ -7,13 +7,15 @@ using System.Threading;
 using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
+using System;
 
 namespace Application.Features.OrganizationUsersInvite.Command
 {
     public class AddOrUpdateOrganizationUsersInviteCommand : IRequest<Response<bool>>
     {
-        public int? Id { get; set; }
-        public int FoodId { get; set; }
+        public Guid? Id { get; set; }
+        public required string FirstName { get; set; }
+        public required string LastName { get; set; }
         public string CommentText { get; set; }
         public double Rating { get; set; }
 
@@ -21,14 +23,14 @@ namespace Application.Features.OrganizationUsersInvite.Command
         {
             private readonly IMapper _mapper;
             private readonly IAuthenticatedUserService _user;
-            private readonly ICommentRepositoryAsync _commentRepository;
+            private readonly IOrganizationUsersInviteRepositoryAsync _organizationUsersInviteRepository;
 
             public AddOrUpdateOrganizationUsersInviteCommandHandler(IMapper mapper, IAuthenticatedUserService user,
-                                                   ICommentRepositoryAsync commentRepository)
+                                                                    IOrganizationUsersInviteRepositoryAsync organizationUsersInviteRepository)
             {
                 _mapper = mapper;
                 _user = user;
-                _commentRepository = commentRepository;
+                _organizationUsersInviteRepository = organizationUsersInviteRepository;
             }
 
             public async Task<Response<bool>> Handle(AddOrUpdateOrganizationUsersInviteCommand command, CancellationToken cancellationToken)
@@ -38,22 +40,22 @@ namespace Application.Features.OrganizationUsersInvite.Command
                     var userId = _user.UserId;
 
                     //Update functionality
-                    if (command.Id.HasValue && command.Id.Value > 0)
+                    if (command.Id.HasValue && command.Id is not null)
                     {
-                        var comment = await _commentRepository.GetByIdAsync(command.Id.Value);
+                        var comment = await _organizationUsersInviteRepository.GetByIdAsync(command.Id.Value);
                         if (comment == null)
                             throw new ApiException($"The requested organization user invite could not be found.");
 
-                        comment.Rating = command.Rating;
-                        comment.CommentText = command.CommentText;
+                        //comment.Rating = command.Rating;
+                        //comment.CommentText = command.CommentText;
 
-                        await _commentRepository.UpdateAsync(comment);
+                        //await _commentRepository.UpdateAsync(comment);
                     }
                     else //Create Functionality
                     {
                         var data = _mapper.Map<Domain.Entities.Comments>(command);
 
-                        await _commentRepository.AddAsync(data);
+                      //  await _commentRepository.AddAsync(data);
                     }
 
                     ts.Complete();

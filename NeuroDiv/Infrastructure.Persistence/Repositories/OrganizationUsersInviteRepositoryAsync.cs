@@ -19,17 +19,15 @@ namespace Infrastructure.Persistence.Repositories
             _organizationUsersInvite = dbContext.Set<OrganizationUsersInvite>();
         }
 
-        public async Task<OrganizationUsersInvite> GetByIdAsync(string Id)
+        public async Task<OrganizationUsersInvite> GetByIdAsync(Guid Id)
         {
-            Guid IdGuid = Guid.Parse(Id);
-            return await _organizationUsersInvite.Where(x => x.Id == IdGuid && x.IsDeleted == false)
+            return await _organizationUsersInvite.Where(x => x.Id == Id && x.IsDeleted == false)
                                                  .FirstOrDefaultAsync();
         }
 
-        public async Task<List<OrganizationUsersInvite>> GetByOrganizationIdAsync(string organizationId)
+        public async Task<List<OrganizationUsersInvite>> GetByOrganizationIdAsync(Guid organizationId)
         {
-            Guid organizationIdGuid = Guid.Parse(organizationId);
-            return await _organizationUsersInvite.Where(x => x.OrganizationId == organizationIdGuid && x.IsDeleted == false)
+            return await _organizationUsersInvite.Where(x => x.OrganizationId == organizationId && x.IsDeleted == false)
                                                  .ToListAsync();
         }
 

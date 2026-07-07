@@ -32,6 +32,12 @@ namespace WebApi.Controllers.v1
             return Ok(await Mediator.Send(command));
         }
 
+        [HttpPost("test-email-sending")]
+        [AllowAnonymous]
+        public async Task<IActionResult> TestEmail(TestMailCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
     }
 
 }
