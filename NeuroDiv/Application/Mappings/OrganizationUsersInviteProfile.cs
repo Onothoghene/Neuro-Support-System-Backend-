@@ -1,9 +1,7 @@
-﻿using Application.DTOs.Settings;
+﻿using Application.DTOs.OrganizationUsersInvite;
+using Application.Features.OrganizationUsersInvite.Command;
 using AutoMapper;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Mappings
 {
@@ -11,7 +9,9 @@ namespace Application.Mappings
     {
         public OrganizationUsersInviteProfile()
         {
-            //CreateMap<ProjectArea, GenericSettingsViewModel>();
+            CreateMap<AddOrUpdateOrganizationUsersInviteCommand, OrganizationUsersInvite>();
+
+            CreateMap<OrganizationUsersInvite, OrganizationUserInviteVM>();
 
         }
     }

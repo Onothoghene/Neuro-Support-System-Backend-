@@ -39,14 +39,14 @@ namespace Infrastructure.Identity.Services
         private readonly ApplicationUrl _applicationUrlSettings;
 
         public AccountService(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
-            IOptions<JWTSettings> jwtSettings,
-            IDateTimeService dateTimeService,
-            SignInManager<ApplicationUser> signInManager,
-            IEmailService emailService,
-            IdentityContext context,
-            IUserProfileRepositoryAsync userProfile,
-             IOptionsSnapshot<ApplicationUrl> applicationUrlSettings)
+                              RoleManager<IdentityRole> roleManager,
+                              IOptions<JWTSettings> jwtSettings,
+                              IDateTimeService dateTimeService,
+                              SignInManager<ApplicationUser> signInManager,
+                              IEmailService emailService,
+                              IdentityContext context,
+                              IUserProfileRepositoryAsync userProfile,
+                              IOptionsSnapshot<ApplicationUrl> applicationUrlSettings)
         {
             _userManager = userManager;
             _roleManager = roleManager;
