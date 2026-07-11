@@ -1,6 +1,4 @@
-﻿using Application.DTOs.Account;
-using Application.Features.ContactUs;
-using Application.Interfaces;
+﻿using Application.Features.ContactUs;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,16 +11,8 @@ namespace WebApi.Controllers.v1
     [Route("api/v{version:apiVersion}/[controller]")]
     public class ApplicationSupportController : BaseApiController
     {
-        private readonly IAccountService _accountService;
-        public ApplicationSupportController(IAccountService accountService)
+        public ApplicationSupportController()
         {
-            _accountService = accountService;
-        }
-
-        [HttpPost("resend-verification-mail")]
-        public async Task<IActionResult> ResendConfirmationMail(VerificationMailRequest request)
-        {
-            return Ok(await _accountService.ResendVerificationMail(request.Email));
         }
 
         [HttpPost("contact-us-mail")]

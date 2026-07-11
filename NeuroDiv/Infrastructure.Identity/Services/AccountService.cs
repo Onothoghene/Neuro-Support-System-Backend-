@@ -144,54 +144,6 @@ namespace Infrastructure.Identity.Services
             }
         }
 
-        public async Task<Response<bool>> VerifyUser(int otp)
-        {
-            var user = await _userProfile.GetUserByOtpAsync(otp);
-
-            if (user == null) return new Response<bool>(false, "unsuccessful");
-
-            if (user.VerificationCode == 0)
-            {
-                throw new ApiException("This link has expired.");
-            }
-
-            if (user.VerificationCode != otp)
-            {
-                throw new ApiException("Invalid verification link!");
-            }
-
-            user.VerificationCode = 0;
-
-            await _userProfile.UpdateAsync(user);
-
-            var aspUser = await _userManager.FindByEmailAsync(user.Email);
-            aspUser.EmailConfirmed = true;
-
-            await _userManager.UpdateAsync(aspUser);
-
-            return new Response<bool>(true, "user verified successfully");
-        }
-
-        //not in use
-        public async Task<Response<bool>> VerifyOtp(int otp)
-        {
-            var user = await _userProfile.GetUserByOtpAsync(otp);
-
-            if (user == null) return new Response<bool>(false, "Invalid OTP!");
-
-            if (user.VerificationCode == 0)
-            {
-                return new Response<bool>(false, "Used OTP!");
-            }
-
-            if (user.VerificationCode != otp)
-            {
-                return new Response<bool>(false, "Incorrect OTP!");
-            }
-
-            return new Response<bool>(true, "Valid OTP");
-        }
-
         public async Task<Response<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, bool isOffline = false)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
@@ -212,7 +164,7 @@ namespace Infrastructure.Identity.Services
             {
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
             }
-           
+
             var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
             if (userProfile == null)
                 throw new ApiException($"User profile not found for '{request.Email}'.");
@@ -288,7 +240,6 @@ namespace Infrastructure.Identity.Services
             return new Response<bool>(true, "Successfully logged out from all devices.");
         }
 
-
         // ── Logout from current device only 
         public async Task<Response<bool>> LogOutAsync(string refreshToken)
         {
@@ -325,305 +276,6 @@ namespace Infrastructure.Identity.Services
             }
 
             return new Response<bool>(true, "Successfully logged out from this device.");
-        }
-
-        public async Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token)
-        {
-            var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
-
-            if (user == null)
-            {
-                throw new ApiException($"Token did not match any users.");
-            }
-
-            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
-
-            if (!refreshToken.IsActive)
-            {
-                throw new ApiException($"Token Not Active.");
-            }
-
-            var userProfile = _userProfile.GetUserByEmailAsync(user.Email);
-
-            //Revoke Current Refresh Token
-            refreshToken.Revoked = DateTime.UtcNow;
-
-            //Generate new Refresh Token and save to Database
-            var newRefreshToken = GenerateRefreshToken();
-            user.RefreshTokens.Add(newRefreshToken);
-            _context.Update(user);
-            _context.SaveChanges();
-
-            JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
-            AuthenticationResponse response = new AuthenticationResponse
-            {
-                // IdentityId = user.Id,
-                UserId = userProfile.Id.ToString(),
-                JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
-                Email = user.Email,
-                UserName = user.UserName
-            };
-            var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
-            response.Roles = rolesList.ToList();
-            response.IsVerified = user.EmailConfirmed;
-            response.TokenExpires = jwtSecurityToken.ValidTo;
-            response.RefreshToken = newRefreshToken.Token;
-            response.RefreshTokenExpiration = newRefreshToken.Expires;
-
-            return new Response<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
-        }
-
-        public async Task<Response<string>> ConfirmEmailAsync(string userId, string code)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
-            var result = await _userManager.ConfirmEmailAsync(user, code);
-            if (result.Succeeded)
-            {
-                return new Response<string>(user.Id, message: $"Account Confirmed for {user.Email}. You can now use the /api/Account/authenticate endpoint.");
-            }
-            else
-            {
-                throw new ApiException($"An error occured while confirming {user.Email}.");
-            }
-        }
-
-        public async Task<Response<bool>> ForgotPassword(ForgotPasswordRequest model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            var userProfile = _userProfile.GetUserByEmailAsync(user.Email).Result;
-
-            if (user == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
-
-            var role = await _userManager.GetRolesAsync(user);
-
-            var url = await GenerateForgotPasswordUrl(user, role.FirstOrDefault());
-            var templatePath = "EmailTemplate/ResetPassword.cshtml";
-
-            await _emailService.SendFluentEmailTemplate(new EmailRequest()
-            {
-                //To = "ambrozzi@filevino.com",
-                To = user.Email,
-                // To = "marioonosnorbert@gmail.com",
-                Body = $"",
-                Subject = "Reset Password",
-                FirstName = $"{userProfile.FirstName}",
-                LastName = $"{userProfile.LastName}",
-                Url = url
-            }, templatePath);
-
-            return new Response<bool>(true, message: $"Mail sent successfully!");
-        }
-
-        public async Task<Response<string>> ResetPassword(ResetPasswordRequest model)
-        {
-            var account = await _userManager.FindByEmailAsync(model.Email);
-
-            if (account == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
-
-            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
-            var result = await _userManager.ResetPasswordAsync(account, code, model.Password);
-
-            if (result.Succeeded)
-            {
-                return new Response<string>(model.Email, message: $"Password reset successfully.");
-            }
-            else
-            {
-                return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)));
-            }
-        }
-
-        public async Task<Response<string>> ChangePassword(ChangePasswordRequest model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user == null)
-                throw new ApiException($"No Accounts Registered with {model.Email}.");
-
-            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
-
-            if (result.Succeeded)
-            {
-                return new Response<string>(model.Email, succeeded: true, message: "Password changed successfully.");
-            }
-            else
-            {
-                return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)), succeeded: false);
-            }
-        }
-
-        public List<Guid> GetUserIdsByRoleAsync(string role)
-        {
-            var aspUsersEmail = _userManager.GetUsersInRoleAsync(role).Result.Select(x => x.Email).ToList();
-            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
-
-            return userIds;
-        }
-
-        public async Task<Response<string>> ResendVerificationMail(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-
-            if (user == null) throw new ApiException($"{email} is not registered yet.");
-
-            if (user.EmailConfirmed == true) throw new ApiException($"{email} has already been confirmed.");
-
-            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
-
-            if (userProfile != null)
-            {
-                var otp = GenerateOTP();
-
-                userProfile.VerificationCode = otp;
-
-                await _userProfile.UpdateAsync(userProfile);
-
-                var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
-
-                await _emailService.SendFluentEmailTemplate(new EmailRequest()
-                {
-                    To = userProfile.Email,
-                    Body = $"",
-                    Subject = "Confirm Registration",
-                    Otp = otp,
-                    FirstName = $"{userProfile.FirstName}",
-                    LastName = $"{userProfile.LastName}",
-                    Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{userProfile.Email}?code={otp}",
-                }, templatePath);
-
-                return new Response<string>($"A verification mail has been re-sent to {userProfile.Email}. Click on the link to confirm your email.",
-                    message: "successful");
-            }
-            else
-            {
-                throw new ApiException($"Profile not found for {email}");
-            }
-        }
-
-        public async Task<string> GetUserRoleByEmail(string email)
-        {
-            var user = await _userManager.FindByEmailAsync(email);
-            string rolename = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
-
-            return rolename;
-        }
-
-        public async Task<string> GetUserRoleById(int userId)
-        {
-            var userprofile = await _userProfile.GetByIdAsync(userId);
-            var user = await _userManager.FindByEmailAsync(userprofile.Email);
-            string rolename = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
-
-            return rolename;
-        }
-
-        public Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request)
-        {
-            var user = _userManager.FindByEmailAsync(request.Email).Result;
-
-            if (user == null)
-            {
-                throw new ApiException($"No Accounts Registered with {request.Email}.");
-            }
-
-            var passwordHasher = new PasswordHasher<ApplicationUser>();
-
-            var resp = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
-
-            //var result = _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false).Result;
-
-            if (resp == PasswordVerificationResult.Failed)
-            {
-                throw new ApiException($"Invalid Credentials for '{request.Email}'.");
-            }
-
-            var response = new AuthenticationResponse { UserName = user.UserName };
-
-            return new Response<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
-        }
-
-        private RefreshToken GenerateRefreshToken()
-        {
-            return new RefreshToken
-            {
-                Token = RandomTokenString(),
-                Expires = DateTime.UtcNow.AddDays(7),
-                Created = DateTime.UtcNow,
-                //CreatedByIp = ipAddress
-            };
-        }
-
-        private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user, bool isOffline = false)
-        {
-            var userClaims = await _userManager.GetClaimsAsync(user);
-            var roles = await _userManager.GetRolesAsync(user);
-            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
-
-            var roleClaims = new List<Claim>();
-
-            for (int i = 0; i < roles.Count; i++)
-            {
-                roleClaims.Add(new Claim("roles", roles[i]));
-            }
-
-            string ipAddress = IpHelper.GetIpAddress();
-
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
-                new Claim("uid", userProfile.Id.ToString()),
-                new Claim("rol", roles.FirstOrDefault()),
-                //new Claim("ip", ipAddress)
-            }
-            .Union(userClaims)
-            .Union(roleClaims);
-
-            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
-            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
-
-            //var jwtSecurityToken = new JwtSecurityToken(
-            //   issuer: _jwtSettings.Issuer,
-            //   audience: _jwtSettings.Audience,
-            //   claims: claims,
-            //   expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
-            //   signingCredentials: signingCredentials);
-
-            if (isOffline == true)
-            {
-                var jwtSecurityToken = new JwtSecurityToken(
-               issuer: _jwtSettings.Issuer,
-               audience: _jwtSettings.Audience,
-               claims: claims,
-               expires: DateTime.UtcNow.AddDays(3650), //offline token would last for 10 years 😂 i.e it won't expire!
-               signingCredentials: signingCredentials);
-
-                return jwtSecurityToken;
-            }
-            else
-            {
-                var jwtSecurityToken = new JwtSecurityToken(
-               issuer: _jwtSettings.Issuer,
-               audience: _jwtSettings.Audience,
-               claims: claims,
-               expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
-               signingCredentials: signingCredentials);
-
-                return jwtSecurityToken;
-            }
-
-            //return jwtSecurityToken;
-        }
-
-        private string RandomTokenString()
-        {
-            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
-            var randomBytes = new byte[40];
-            rngCryptoServiceProvider.GetBytes(randomBytes);
-            // convert random bytes to hex string
-            return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
         public async Task<Response<ValidateInviteTokenVM>> ValidateInviteTokenAsync(string token)
@@ -686,9 +338,9 @@ namespace Infrastructure.Identity.Services
             {
                 Email = invite.Email,
                 UserName = invite.Email,
-                FirstName = request.FirstName,   
-                LastName = request.LastName, 
-               // AccountType = AccountType.Organization,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                // AccountType = AccountType.Organization,
             };
 
             var createResult = await _userManager.CreateAsync(user, request.Password);
@@ -698,7 +350,7 @@ namespace Infrastructure.Identity.Services
                 try
                 {
                     // Assign org therapist role
-                   // await _userManager.AddToRoleAsync(user, Roles.OrgTherapist.ToString());
+                    // await _userManager.AddToRoleAsync(user, Roles.OrgTherapist.ToString());
 
                     // Create UserProfile
                     var otp = GenerateOTP();
@@ -828,6 +480,369 @@ namespace Infrastructure.Identity.Services
             await _inviteRepository.UpdateAsync(invite);
 
             return new Response<bool>(true, "You have successfully joined the organization.");
+        }
+
+        public async Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token)
+        {
+            var user = _context.Users.SingleOrDefault(u => u.RefreshTokens.Any(t => t.Token == token));
+
+            if (user == null)
+                throw new ApiException($"Token did not match any users.");
+
+            var refreshToken = user.RefreshTokens.Single(x => x.Token == token);
+
+            if (!refreshToken.IsActive)
+                throw new ApiException($"Token Not Active.");
+
+            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
+            if (userProfile == null)
+                throw new ApiException("User profile could not be found.");
+
+            //Revoke Current Refresh Token
+            refreshToken.Revoked = DateTime.UtcNow;
+
+            //Generate new Refresh Token and save to Database
+            var newRefreshToken = GenerateRefreshToken();
+            user.RefreshTokens.Add(newRefreshToken);
+            _context.Update(user);
+            _context.SaveChanges();
+
+            JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
+            AuthenticationResponse response = new AuthenticationResponse
+            {
+                // IdentityId = user.Id,
+                UserId = userProfile.Id.ToString(),
+                JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                Email = user.Email,
+                UserName = user.UserName
+            };
+            var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
+            response.Roles = [.. rolesList];
+            response.IsVerified = user.EmailConfirmed;
+            response.TokenExpires = jwtSecurityToken.ValidTo;
+            response.RefreshToken = newRefreshToken.Token;
+            response.RefreshTokenExpiration = newRefreshToken.Expires;
+
+            return new Response<AuthenticationResponse>(response, $"Token refreshed for {user.UserName}.");
+        }
+
+        // ── Verify OTP (email confirmation) ──────────────────────────────────────────
+        public async Task<Response<bool>> VerifyUser(int otp)
+        {
+            var userProfile = await _userProfile.GetUserByOtpAsync(otp);
+            if (userProfile == null)
+                throw new ApiException("Invalid OTP.");
+
+            if (userProfile.VerificationCode == 0)
+                throw new ApiException("This OTP has already been used or has expired.");
+
+            // Mark OTP as used
+            userProfile.VerificationCode = 0;
+            await _userProfile.UpdateAsync(userProfile);
+
+            // Confirm email on the Identity side
+            var aspUser = await _userManager.FindByEmailAsync(userProfile.Email);
+            if (aspUser == null)
+                throw new ApiException("Associated account could not be found.");
+
+            aspUser.EmailConfirmed = true;
+            await _userManager.UpdateAsync(aspUser);
+
+            return new Response<bool>(true, "Email verified successfully. You can now log in.");
+        }
+
+        // ── Resend Verification Email
+        public async Task<Response<string>> ResendVerificationMailAsync(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                throw new ApiException($"No registered account found with '{email}'.");
+
+            if (user.EmailConfirmed)
+                throw new ApiException($"'{email}' has already been confirmed. You can log in.");
+
+            var userProfile = await _userProfile.GetUserByEmailAsync(email);
+            if (userProfile == null)
+                throw new ApiException($"User profile not found for '{email}'.");
+
+            // Generate fresh OTP and update profile
+            var otp = GenerateOTP();
+            userProfile.VerificationCode = otp;
+            await _userProfile.UpdateAsync(userProfile);
+
+            await _emailService.SendFluentEmailTemplate(new EmailRequest
+            {
+                To = userProfile.Email,
+                Body = string.Empty,
+                Subject = "Confirm Your Neuro-Support Account",
+                Otp = otp,
+                FirstName = userProfile.FirstName,
+                LastName = userProfile.LastName,
+                Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{userProfile.Email}?code={otp}",
+            }, "EmailTemplate/ConfirmEmail.cshtml");
+
+            return new Response<string>(
+                $"A new verification email has been sent to '{email}'. Please check your inbox.",
+                message: "Verification email resent successfully.");
+        }
+
+        // ── Forgot Password
+        public async Task<Response<bool>> ForgotPassword(ForgotPasswordRequest model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email) ?? 
+                             throw new ApiException($"No Accounts Registered with {model.Email}.");
+
+            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
+            if (userProfile == null)
+                throw new ApiException($"User profile not found for '{model.Email}'.");
+
+            var role = await _userManager.GetRolesAsync(user);
+            var url = await GenerateForgotPasswordUrl(user, role.FirstOrDefault());
+
+            await _emailService.SendFluentEmailTemplate(new EmailRequest
+            {
+                To = user.Email,
+                // To = "marioonosnorbert@gmail.com",
+                Body = string.Empty,
+                Subject = "Reset Your Neuro-Support Password",
+                FirstName = userProfile.FirstName,
+                LastName = userProfile.LastName,
+                Url = url,
+            }, "EmailTemplate/ResetPassword.cshtml");
+
+            return new Response<bool>(true, "Password reset email sent successfully.");
+        }
+
+        // ── Reset Password
+        public async Task<Response<string>> ResetPassword(ResetPasswordRequest model)
+        {
+            var user = await _userManager.FindByEmailAsync(model.Email) ?? 
+                            throw new ApiException($"No registered account found with '{model.Email}'.");
+
+            var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
+            var result = await _userManager.ResetPasswordAsync(user, code, model.Password);
+
+            if (result.Succeeded)
+            {
+                // Invalidate all active refresh tokens on password reset —
+                // forces re-login on all devices for security
+                if (user.RefreshTokens != null)
+                    user.RefreshTokens.Clear();
+
+                _context.Update(user);
+                _context.SaveChanges();
+
+                return new Response<string>(model.Email, message: "Password reset successfully. Please log in with your new password.");
+            }
+            else
+            {
+                throw new ApiException(string.Join(", ", result.Errors.Select(x => x.Description)));
+            }
+        }
+
+        // ── Change Password 
+        public async Task<Response<string>> ChangePassword(ChangePasswordRequest model)
+        {
+            var userProfileId = Guid.Parse(_authenticatedUser.UserId);
+            if (userProfileId == Guid.Empty)
+                throw new ApiException("Authenticated user could not be found.");
+
+            var userProfile = await _userProfile.GetUserByIdAsync(userProfileId) ??
+                              throw new ApiException("User profile could not be found.");
+
+            var user = await _userManager.FindByEmailAsync(userProfile.Email) ??
+                       throw new ApiException("Associated account could not be found.");
+
+            var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
+
+            if (result.Succeeded)
+            {
+                // Invalidate all refresh tokens on password change —
+                // forces re-login on all devices for security
+                if (user.RefreshTokens != null)
+                    user.RefreshTokens.Clear();
+
+                _context.Update(user);
+                _context.SaveChanges();
+
+                return new Response<string>(
+                    userProfile.Email,
+                    succeeded: true,
+                    message: "Password changed successfully. Please log in again.");
+            }
+            else
+            {
+                throw new ApiException(string.Join(", ", result.Errors.Select(x => x.Description)));
+            }
+        }
+
+        //Not in use right now 
+        public async Task<Response<string>> ConfirmEmailAsync(Guid userId, string code)
+        {
+            var userProfile = await _userProfile.GetUserByIdAsync(userId);
+            if (userProfile == null)
+                throw new ApiException("User profile could not be found.");
+
+            // Use the email from UserProfile to find the Identity user
+            var user = await _userManager.FindByEmailAsync(userProfile.Email);
+            if (user == null)
+                throw new ApiException("Associated account could not be found.");
+
+            if (user.EmailConfirmed)
+                throw new ApiException($"'{user.Email}' has already been confirmed. You can log in.");
+
+            var decodedCode = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
+            var result = await _userManager.ConfirmEmailAsync(user, decodedCode);
+
+            if (result.Succeeded)
+            {
+                // Mark OTP as used on UserProfile side as well — keeps both in sync
+                userProfile.VerificationCode = 0;
+                await _userProfile.UpdateAsync(userProfile);
+
+                return new Response<string>(
+                    userId.ToString(),
+                    message: $"Account confirmed for '{user.Email}'. You can now log in.");
+            }
+            else
+            {
+                throw new ApiException(
+                    $"An error occurred while confirming '{user.Email}': " +
+                    string.Join(", ", result.Errors.Select(x => x.Description)));
+            }
+        }
+
+        public List<Guid> GetUserIdsByRoleAsync(string role)
+        {
+            var aspUsersEmail = _userManager.GetUsersInRoleAsync(role).Result.Select(x => x.Email).ToList();
+            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
+
+            return userIds;
+        }
+
+        public async Task<string> GetUserRoleByEmail(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            string rolename = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+
+            return rolename;
+        }
+
+        public async Task<string> GetUserRoleById(int userId)
+        {
+            var userprofile = await _userProfile.GetByIdAsync(userId);
+            var user = await _userManager.FindByEmailAsync(userprofile.Email);
+            string rolename = (await _userManager.GetRolesAsync(user)).FirstOrDefault();
+
+            return rolename;
+        }
+
+        public Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request)
+        {
+            var user = _userManager.FindByEmailAsync(request.Email).Result;
+
+            if (user == null)
+            {
+                throw new ApiException($"No Accounts Registered with {request.Email}.");
+            }
+
+            var passwordHasher = new PasswordHasher<ApplicationUser>();
+
+            var resp = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
+
+            //var result = _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false).Result;
+
+            if (resp == PasswordVerificationResult.Failed)
+            {
+                throw new ApiException($"Invalid Credentials for '{request.Email}'.");
+            }
+
+            var response = new AuthenticationResponse { UserName = user.UserName };
+
+            return new Response<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
+        }
+
+        private RefreshToken GenerateRefreshToken()
+        {
+            return new RefreshToken
+            {
+                Token = RandomTokenString(),
+                Expires = DateTime.UtcNow.AddDays(7),
+                Created = DateTime.UtcNow,
+                //CreatedByIp = ipAddress
+            };
+        }
+
+        private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user, bool isOffline = false)
+        {
+            var userClaims = await _userManager.GetClaimsAsync(user);
+            var roles = await _userManager.GetRolesAsync(user);
+            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
+
+            var roleClaims = new List<Claim>();
+
+            for (int i = 0; i < roles.Count; i++)
+            {
+                roleClaims.Add(new Claim("roles", roles[i]));
+            }
+
+            string ipAddress = IpHelper.GetIpAddress();
+
+            var claims = new[]
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                new Claim("uid", userProfile.Id.ToString()),
+                new Claim("rol", roles.FirstOrDefault()),
+                //new Claim("ip", ipAddress)
+            }
+            .Union(userClaims)
+            .Union(roleClaims);
+
+            var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+            var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);
+
+            //var jwtSecurityToken = new JwtSecurityToken(
+            //   issuer: _jwtSettings.Issuer,
+            //   audience: _jwtSettings.Audience,
+            //   claims: claims,
+            //   expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
+            //   signingCredentials: signingCredentials);
+
+            if (isOffline == true)
+            {
+                var jwtSecurityToken = new JwtSecurityToken(
+               issuer: _jwtSettings.Issuer,
+               audience: _jwtSettings.Audience,
+               claims: claims,
+               expires: DateTime.UtcNow.AddDays(3650), //offline token would last for 10 years 😂 i.e it won't expire!
+               signingCredentials: signingCredentials);
+
+                return jwtSecurityToken;
+            }
+            else
+            {
+                var jwtSecurityToken = new JwtSecurityToken(
+               issuer: _jwtSettings.Issuer,
+               audience: _jwtSettings.Audience,
+               claims: claims,
+               expires: DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes),
+               signingCredentials: signingCredentials);
+
+                return jwtSecurityToken;
+            }
+
+            //return jwtSecurityToken;
+        }
+
+        private string RandomTokenString()
+        {
+            using var rngCryptoServiceProvider = new RNGCryptoServiceProvider();
+            var randomBytes = new byte[40];
+            rngCryptoServiceProvider.GetBytes(randomBytes);
+            // convert random bytes to hex string
+            return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
         private async Task<string> SendVerificationEmail(ApplicationUser user, string origin)

@@ -95,13 +95,6 @@ namespace WebApi.Controllers
             return Ok(await _accountService.VerifyUser(request.Otp));
         }
 
-        //not in use
-        [HttpGet("verify-otp/{otp}")]
-        public async Task<IActionResult> VerifyOtp(int otp)
-        {
-            return Ok(await _accountService.VerifyOtp(otp));
-        }
-
         /// <summary>
         /// Forgot password endpoint
         /// </summary>
@@ -173,6 +166,12 @@ namespace WebApi.Controllers
         {
             var resp = await _accountService.RefreshTokenAsync(token);
             return Ok(resp);
+        }
+
+        [HttpPost("resend-verification-mail")]
+        public async Task<IActionResult> ResendConfirmationMail(VerificationMailRequest request)
+        {
+            return Ok(await _accountService.ResendVerificationMailAsync(request.Email));
         }
 
         private string GenerateIPAddress()

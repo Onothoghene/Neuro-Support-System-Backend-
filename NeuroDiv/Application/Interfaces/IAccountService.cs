@@ -12,16 +12,15 @@ namespace Application.Interfaces
         Task<Response<string>> RegisterAsync(RegisterRequest request);
         Task<Response<bool>> VerifyUser(int otp);
         Task<Response<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, bool isOffline = false);
-        Task<Response<string>> ConfirmEmailAsync(string userId, string code);
+        Task<Response<string>> ConfirmEmailAsync(Guid userId, string code);
         Task<Response<bool>> ForgotPassword(ForgotPasswordRequest model);
         Task<Response<string>> ResetPassword(ResetPasswordRequest model);
         Task<Response<string>> ChangePassword(ChangePasswordRequest model);
         Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token);
         List<Guid> GetUserIdsByRoleAsync(string role);
-        Task<Response<string>> ResendVerificationMail(string email);
+        Task<Response<string>> ResendVerificationMailAsync(string email);
         Task<string> GetUserRoleByEmail(string email);
         Task<string> GetUserRoleById(int userId);
-        Task<Response<bool>> VerifyOtp(int otp);
         Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request);
         Task<Response<string>> CreateAdmin(RegisterRequest request);
         List<Guid> GetUsersAsync();
