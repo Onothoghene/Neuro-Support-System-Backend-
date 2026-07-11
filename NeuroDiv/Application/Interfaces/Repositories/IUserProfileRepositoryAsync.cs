@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,12 +11,10 @@ namespace Application.Interfaces.Repositories
         
         Task<UserProfile> GetUserByOtpAsync(int otp);
         Task<UserProfile> GetUserByEmailAsync(string email);
-        Task<UserProfile> GetUserByIdAsync(string userId);
-        Task<UserProfile> GetUserProfileByIdAsync(string userId);
-        Task<List<string>> GetUserIdsByEmail(List<string> emails);
-        IQueryable<UserProfile> GetUserProfilesByIds(List<string> ids);
-        IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<string> ids);
-        Task<UserProfile> GetUserProfilesByIdLite(string id);
+        Task<UserProfile> GetUserByIdAsync(Guid userId);
+        Task<List<Guid>> GetUserIdsByEmail(List<string> emails);
+        IQueryable<UserProfile> GetUserProfilesByIds(List<Guid> ids);
+        IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<Guid> ids);
         IQueryable<UserProfile> GetAllUsers();
     }
 }

@@ -56,7 +56,7 @@ namespace Application.Features.ContactUs
                         PhoneNumber = command.PhoneNumber,
                         EmailAddress = command.Email,
                         Message = command.Message,
-                        DateCreated = DateTime.Now,
+                        DateCreated = DateTime.UtcNow,
                     });
 
                     ts.Complete();

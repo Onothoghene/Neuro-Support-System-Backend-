@@ -32,41 +32,32 @@ namespace Infrastructure.Persistence.Repositories
             return _userProfile.Where(x => x.Email == email).FirstOrDefaultAsync();
         }
 
-        public Task<UserProfile> GetUserByIdAsync(string userId)
+        public Task<UserProfile> GetUserByIdAsync(Guid userId)
         {
-            Guid userIdGuid = Guid.Parse(userId);
-            return _userProfile.Where(x => x.Id == userIdGuid)
-                .FirstOrDefaultAsync();
+            //Guid userIdGuid = Guid.Parse(userId);
+            return _userProfile.Where(x => x.Id == userId).FirstOrDefaultAsync();
         }
 
-        public Task<UserProfile> GetUserProfileByIdAsync(string userId)
-        {
-            Guid userIdGuid = Guid.Parse(userId);
-            return _userProfile.Where(x => x.Id == userIdGuid)
-
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<List<string>> GetUserIdsByEmail(List<string> emails)
+        public async Task<List<Guid>> GetUserIdsByEmail(List<string> emails)
         {
             var userIds = await _userProfile.Where(x => emails.Contains(x.Email))
-                                      .Select(x => x.Id.ToString())
+                                      .Select(x => x.Id)
                                       .ToListAsync();
             return userIds;
 
         }
 
-        public IQueryable<UserProfile> GetUserProfilesByIds(List<string> ids)
+        public IQueryable<UserProfile> GetUserProfilesByIds(List<Guid> ids)
         {
-            var userGuids = ids.Select(id => Guid.Parse(id)).ToList();
-            var users = _userProfile.Where(x => userGuids.Contains(x.Id));
+          //  var userGuids = ids.Select(id => Guid.Parse(id)).ToList();
+            var users = _userProfile.Where(x => ids.Contains(x.Id));
 
             return users;
         }
 
-        public IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<string> ids)
+        public IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<Guid> ids)
         {
-            var guidIds = ids.Select(Guid.Parse).ToList();
+            //var guidIds = ids.Select(Guid.Parse).ToList();
 
         //    var guidIds = ids
         //.Select(id => Guid.TryParse(id, out var guid) ? guid : (Guid?)null)
@@ -74,20 +65,10 @@ namespace Infrastructure.Persistence.Repositories
         //.Select(g => g.Value)
         //.ToList();
 
-            var users = _userProfile.Where(x => guidIds.Contains(x.Id));
+            var users = _userProfile.Where(x => ids.Contains(x.Id));
 
             return users;
         }
-
-        public Task<UserProfile> GetUserProfilesByIdLite(string id)
-        {
-            Guid IdGuid = Guid.Parse(id);
-            var user = _userProfile.Where(x => x.Id == IdGuid)
-                .FirstOrDefaultAsync();
-
-            return user;
-        }
-
 
         public IQueryable<UserProfile> GetAllUsers()
         {

@@ -14,6 +14,6 @@ namespace Infrastructure.Identity.Models
         public bool? IsLoggedIn { get; set; }
         public DateTime? LastLoginDate { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
-        
+
     }
 }

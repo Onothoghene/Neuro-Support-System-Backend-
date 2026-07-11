@@ -4,6 +4,7 @@ using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
 using MediatR;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace Application.Features.PersonalDetails.Command.Update
 
             public async Task<Response<bool>> Handle(UpdatePersonalDetailsByUserIdCommand request, CancellationToken cancellationToken)
             {
-                string userId = _user.UserId;
+                var userId = Guid.Parse(_user.UserId);
 
                 var userProfile = await _userProfileRepo.GetUserByIdAsync(userId);
 

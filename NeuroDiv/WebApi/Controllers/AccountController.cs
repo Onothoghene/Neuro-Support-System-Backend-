@@ -1,4 +1,5 @@
 ﻿using Application.DTOs.Account;
+using Application.DTOs.OrganizationUsersInvite;
 using Application.Interfaces;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
@@ -35,7 +36,7 @@ namespace WebApi.Controllers
         }
 
         /// <summary>
-        /// Used to create/register a user
+        /// To be used when a freelancer/independent therapist who finds the app on their own wants to register. 
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -43,6 +44,43 @@ namespace WebApi.Controllers
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             return Ok(await _accountService.RegisterAsync(request));
+        }
+
+        /// <summary>
+        /// To be used when a therapist was invited by an org admin to join the platform. 
+        /// The org admin will send an invite link to the therapist's email, 
+        /// and the therapist will use that link to register.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("register-via-invite")]
+        public async Task<IActionResult> RegisterViaInviteAsync(RegisterViaInviteRequest request)
+        {
+            return Ok(await _accountService.RegisterViaInviteAsync(request));
+        }
+
+        /// <summary>
+        /// Validates an invite token when the invitee clicks the email link.
+        /// Returns pre-filled details and whether they already have an account.
+        /// Call this FIRST before showing any UI to the invitee.
+        /// </summary>
+        [HttpGet("validate-invite")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ValidateInvite([FromQuery] string token)
+        {
+            return Ok(await _accountService.ValidateInviteTokenAsync(token));
+        }
+
+        /// <summary>
+        /// Called when an already-registered user accepts an invite.
+        /// User must be authenticated. Only call this if ValidateInvite
+        /// returned HasExistingAccount = true and the user has logged in.
+        /// </summary>
+        [HttpPost("accept-invite")]
+        [Authorize]
+        public async Task<IActionResult> AcceptInvite([FromQuery] string token)
+        {
+            return Ok(await _accountService.AcceptInviteExistingUserAsync(token));
         }
 
         /// <summary>
@@ -103,6 +141,26 @@ namespace WebApi.Controllers
             {
                 return BadRequest(response); // 400 Bad Request
             }
+        }
+
+        /// <summary>
+        /// Logs out from all devices by clearing all refresh tokens.
+        /// </summary>
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            return Ok(await _accountService.LogOutAsync());
+        }
+
+        /// <summary>
+        /// Logs out from the current device only by revoking the specific refresh token.
+        /// </summary>
+        [HttpPost("logout-device")]
+        [Authorize]
+        public async Task<IActionResult> LogoutDevice([FromQuery] string refreshToken)
+        {
+            return Ok(await _accountService.LogOutAsync(refreshToken));
         }
 
         /// <summary>

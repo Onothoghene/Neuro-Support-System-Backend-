@@ -3,6 +3,7 @@ using Application.Features.PersonalDetails.Query.GetById;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers.v1
@@ -13,13 +14,13 @@ namespace WebApi.Controllers.v1
     public class PersonalDetailsController : BaseApiController
     {
         [HttpGet("user/{id?}")]
-        public async Task<IActionResult> GetPersonalDetailsByUserId(string id)
+        public async Task<IActionResult> GetPersonalDetailsByUserId(Guid? id)
         {
             return Ok(await Mediator.Send(new GetPersonalDetailsByIdQuery { Id = id }));
         }
 
         [HttpGet("user/lite/{id?}")]
-        public async Task<IActionResult> GetPersonalDetailsByUserIdLite(string id)
+        public async Task<IActionResult> GetPersonalDetailsByUserIdLite(Guid? id)
         {
             return Ok(await Mediator.Send(new GetPersonalDetailsByIdLiteQuery { Id = id }));
         }

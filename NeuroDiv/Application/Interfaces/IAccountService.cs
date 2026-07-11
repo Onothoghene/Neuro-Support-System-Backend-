@@ -1,5 +1,7 @@
 ﻿using Application.DTOs.Account;
+using Application.DTOs.OrganizationUsersInvite;
 using Application.Wrappers;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -15,16 +17,19 @@ namespace Application.Interfaces
         Task<Response<string>> ResetPassword(ResetPasswordRequest model);
         Task<Response<string>> ChangePassword(ChangePasswordRequest model);
         Task<Response<AuthenticationResponse>> RefreshTokenAsync(string token);
-        List<string> GetUserIdsByRoleAsync(string role);
+        List<Guid> GetUserIdsByRoleAsync(string role);
         Task<Response<string>> ResendVerificationMail(string email);
         Task<string> GetUserRoleByEmail(string email);
         Task<string> GetUserRoleById(int userId);
         Task<Response<bool>> VerifyOtp(int otp);
         Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request);
         Task<Response<string>> CreateAdmin(RegisterRequest request);
-        List<string> GetUsersAsync();
-        List<string> GetAdminsAsync();
-        Task<Response<bool>> LogOutAsync(string email);
-        Task<Response<bool>> LogOutAsync(string email, string refreshToken);
+        List<Guid> GetUsersAsync();
+        List<Guid> GetAdminsAsync();
+        Task<Response<bool>> LogOutAsync();
+        Task<Response<bool>> LogOutAsync(string refreshToken);
+        Task<Response<ValidateInviteTokenVM>> ValidateInviteTokenAsync(string token);
+        Task<Response<string>> RegisterViaInviteAsync(RegisterViaInviteRequest request);
+        Task<Response<bool>> AcceptInviteExistingUserAsync(string token);
     }
 }

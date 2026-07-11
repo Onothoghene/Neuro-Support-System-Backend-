@@ -62,7 +62,7 @@ namespace Application.Features.OrganizationUsersInvite.Command
                         orgUserInvite.Email = command.Email;
                         orgUserInvite.OrganizationId = command.OrganizationId;
                         orgUserInvite.LastModifiedBy = userId;
-                        orgUserInvite.LastModified = DateTime.Now;
+                        orgUserInvite.LastModified = DateTime.UtcNow;
 
                         if (emailChanged)
                         {

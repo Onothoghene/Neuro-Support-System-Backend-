@@ -50,5 +50,12 @@ namespace Infrastructure.Persistence.Repositories
                                            .ToListAsync();
         }
 
+        public async Task<OrganizationUsers?> GetActiveByUserIdAsync(Guid userId)
+        {
+            return await _organizationUsers.FirstOrDefaultAsync(o => o.UserId == userId
+                                                                && o.IsActive
+                                                                && !o.IsDeleted);
+        }
+
     }
 }

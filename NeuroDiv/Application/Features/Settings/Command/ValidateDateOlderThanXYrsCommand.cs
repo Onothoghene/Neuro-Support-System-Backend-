@@ -25,7 +25,7 @@ namespace Application.Features.Settings.Command
             }
             public async Task<Response<bool>> Handle(ValidateDateOlderThanXYrsCommand request, CancellationToken cancellationToken)
             {
-                var startYear = DateTime.Now.AddYears(-request.YearRange).Year;
+                var startYear = DateTime.UtcNow.AddYears(-request.YearRange).Year;
 
                 var docYear = _dateTime.EpocToDateTime(request.Date).Year;
 

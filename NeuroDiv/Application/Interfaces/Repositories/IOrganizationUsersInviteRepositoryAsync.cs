@@ -10,5 +10,6 @@ namespace Application.Interfaces.Repositories
         Task<OrganizationUsersInvite> GetByIdAsync(Guid Id);
         Task<List<OrganizationUsersInvite>> GetByOrganizationIdAsync(Guid organizationId);
         Task<OrganizationUsersInvite?> GetPendingInviteByEmailAndOrgAsync(string email, Guid organizationId);
+        Task<OrganizationUsersInvite?> GetByTokenAsync(string token);
     }
 }

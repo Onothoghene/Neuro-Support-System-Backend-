@@ -41,5 +41,10 @@ namespace Infrastructure.Persistence.Repositories
                                                  .FirstOrDefaultAsync();
         }
 
+        public async Task<OrganizationUsersInvite?> GetByTokenAsync(string token)
+        {
+            return await _organizationUsersInvite.FirstOrDefaultAsync(i => i.Token == token && !i.IsDeleted);
+        }
+
     }
 }

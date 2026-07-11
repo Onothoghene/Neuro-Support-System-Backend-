@@ -5,6 +5,7 @@ using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
 using MediatR;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,7 @@ namespace Application.Features.PersonalDetails.Query.GetById
 {
     public class GetPersonalDetailsByIdQuery : IRequest<Response<PersonalDetailsVM>>
     {
-        public string? Id { get; set; }
+        public Guid? Id { get; set; }
 
         public class GetPersonalDetailsByIdQueryHandler : IRequestHandler<GetPersonalDetailsByIdQuery, Response<PersonalDetailsVM>>
         {
@@ -30,7 +31,7 @@ namespace Application.Features.PersonalDetails.Query.GetById
 
             public async Task<Response<PersonalDetailsVM>> Handle(GetPersonalDetailsByIdQuery request, CancellationToken cancellationToken)
             {
-                var userId = request.Id is not null ? request.Id : _user.UserId;
+                var userId = request.Id != Guid.Empty ? request.Id.Value : Guid.Parse(_user.UserId);
 
                 var personalDetails = await _userProfile.GetUserByIdAsync(userId);
 

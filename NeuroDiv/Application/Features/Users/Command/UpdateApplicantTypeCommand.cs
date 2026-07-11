@@ -30,7 +30,7 @@ namespace Application.Features.Users.Command
             {
                 var applicant = "";
 
-                var userProfile = await _userProfile.GetUserByIdAsync(_user.UserId);
+                var userProfile = await _userProfile.GetUserByIdAsync(Guid.Parse(_user.UserId));
 
               
 

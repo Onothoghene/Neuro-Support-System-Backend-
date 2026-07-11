@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Account;
 using Application.DTOs.Email;
+using Application.DTOs.OrganizationUsersInvite;
 using Application.Enums;
 using Application.Exceptions;
 using Application.Interfaces;
@@ -37,6 +38,9 @@ namespace Infrastructure.Identity.Services
         private readonly IdentityContext _context;
         private readonly IUserProfileRepositoryAsync _userProfile;
         private readonly ApplicationUrl _applicationUrlSettings;
+        private readonly IOrganizationUsersInviteRepositoryAsync _inviteRepository;
+        private readonly IOrganizationUsersRepositoryAsync _orgUserRepository;
+        private readonly IAuthenticatedUserService _authenticatedUser;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager,
@@ -46,20 +50,26 @@ namespace Infrastructure.Identity.Services
                               IEmailService emailService,
                               IdentityContext context,
                               IUserProfileRepositoryAsync userProfile,
-                              IOptionsSnapshot<ApplicationUrl> applicationUrlSettings)
+                              IOptionsSnapshot<ApplicationUrl> applicationUrlSettings,
+                              IOrganizationUsersInviteRepositoryAsync inviteRepository,
+                              IOrganizationUsersRepositoryAsync orgUserRepository,
+                              IAuthenticatedUserService authenticatedUser)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _jwtSettings = jwtSettings.Value;
             _dateTimeService = dateTimeService;
             _signInManager = signInManager;
-            this._emailService = emailService;
+            _emailService = emailService;
             _context = context;
             _userProfile = userProfile;
             _applicationUrlSettings = applicationUrlSettings.Value;
+            _inviteRepository = inviteRepository;
+            _orgUserRepository = orgUserRepository;
+            _authenticatedUser = authenticatedUser;
         }
 
-        //Registration Method
+        //Registration Method for freelanncers/independent users
         public async Task<Response<string>> RegisterAsync(RegisterRequest request)
         {
             var userWithSameUserName = await _userManager.FindByNameAsync(request.Email);
@@ -190,23 +200,27 @@ namespace Infrastructure.Identity.Services
             {
                 throw new ApiException($"No Registered Account with {request.Email}.");
             }
+
+            if (!user.EmailConfirmed)
+            {
+                throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
+            }
+
             var result = await _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false);
 
             if (!result.Succeeded)
             {
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
             }
-            if (!user.EmailConfirmed)
-            {
-                throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
-            }
-
+           
             var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
+            if (userProfile == null)
+                throw new ApiException($"User profile not found for '{request.Email}'.");
 
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user, isOffline);
             AuthenticationResponse response = new AuthenticationResponse
             {
-               // IdentityId = user.Id,
+                // IdentityId = user.Id,
                 UserId = userProfile.Id.ToString(),
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 Email = user.Email,
@@ -235,47 +249,79 @@ namespace Infrastructure.Identity.Services
                 _context.SaveChanges();
             }
 
-            //Update Last Login Date
-            user.LastLoginDate = DateTime.Now;
-            await _userManager.UpdateAsync(user);
+            //Update Last Login Date from the user profile table
+            userProfile.IsLoggedIn = true;
+            userProfile.LastDateLoggedIn = DateTime.Now;
+
+            await _userProfile.UpdateAsync(userProfile);
 
             return new Response<AuthenticationResponse>(response, $"User {user.UserName} Authenticated");
         }
 
-        public async Task<Response<bool>> LogOutAsync(string email)
+        // ── Logout from ALL devices
+        public async Task<Response<bool>> LogOutAsync()
         {
-            var user = await _userManager.FindByEmailAsync(email);
-            if (user == null)
-                throw new ApiException($"No Registered Account with {email}.");
+            var userProfileId = Guid.Parse(_authenticatedUser.UserId);
+            if (userProfileId == Guid.Empty)
+                throw new ApiException("Authenticated user could not be found.");
 
+            var userProfile = await _userProfile.GetUserByIdAsync(userProfileId);
+            if (userProfile == null)
+                throw new ApiException("User profile could not be found.");
+
+            var user = await _userManager.FindByEmailAsync(userProfile.Email);
+            if (user == null)
+                throw new ApiException("No registered account found.");
+
+            // Clear all refresh tokens — logs out from every device
             if (user.RefreshTokens != null)
                 user.RefreshTokens.Clear();
 
-            user.IsLoggedIn = false;
-            await _userManager.UpdateAsync(user);
-
             var result = await _userManager.UpdateAsync(user);
-
             if (!result.Succeeded)
-                throw new ApiException("Error occurred during logout.");
+                throw new ApiException("An error occurred during logout.");
 
-            return new Response<bool>(true, $"User {user.UserName} with email: {user.Email} Logged Out");
+            // Update IsLoggedIn on UserProfile — not Identity
+            userProfile.IsLoggedIn = false;
+            await _userProfile.UpdateAsync(userProfile);
+
+            return new Response<bool>(true, "Successfully logged out from all devices.");
         }
 
-        public async Task<Response<bool>> LogOutAsync(string email, string refreshToken)
+
+        // ── Logout from current device only 
+        public async Task<Response<bool>> LogOutAsync(string refreshToken)
         {
-            var user = await _userManager.FindByEmailAsync(email);
+            var userProfileId = Guid.Parse(_authenticatedUser.UserId);
+            if (userProfileId == Guid.Empty)
+                throw new ApiException("Authenticated user could not be found.");
+
+            var userProfile = await _userProfile.GetUserByIdAsync(userProfileId);
+            if (userProfile == null)
+                throw new ApiException("User profile could not be found.");
+
+            var user = await _userManager.FindByEmailAsync(userProfile.Email);
             if (user == null)
-                throw new ApiException($"No Registered Account with {email}.");
+                throw new ApiException("No registered account found.");
 
-            // Find the specific token being used by this device
-            var tokenRecord = user.RefreshTokens.FirstOrDefault(x => x.Token == refreshToken);
+            // Find and remove only the token tied to this device
+            var tokenRecord = user.RefreshTokens?.FirstOrDefault(x => x.Token == refreshToken);
+            if (tokenRecord == null)
+                throw new ApiException("Refresh token not found or already revoked.");
 
-            if (tokenRecord != null)
+            user.RefreshTokens.Remove(tokenRecord);
+
+            var result = await _userManager.UpdateAsync(user);
+            if (!result.Succeeded)
+                throw new ApiException("An error occurred during logout.");
+
+            // Only set IsLoggedIn to false if no other active sessions remain
+            // — user may still be logged in on another device
+            var hasOtherActiveSessions = user.RefreshTokens.Any(t => t.IsActive);
+            if (!hasOtherActiveSessions)
             {
-                // Remove only the token associated with this device
-                user.RefreshTokens.Remove(tokenRecord);
-                await _userManager.UpdateAsync(user);
+                userProfile.IsLoggedIn = false;
+                await _userProfile.UpdateAsync(userProfile);
             }
 
             return new Response<bool>(true, "Successfully logged out from this device.");
@@ -311,7 +357,7 @@ namespace Infrastructure.Identity.Services
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse
             {
-               // IdentityId = user.Id,
+                // IdentityId = user.Id,
                 UserId = userProfile.Id.ToString(),
                 JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 Email = user.Email,
@@ -406,7 +452,8 @@ namespace Infrastructure.Identity.Services
                 return new Response<string>(message: String.Join(",", result.Errors.Select(x => x.Description)), succeeded: false);
             }
         }
-        public List<string> GetUserIdsByRoleAsync(string role)
+
+        public List<Guid> GetUserIdsByRoleAsync(string role)
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(role).Result.Select(x => x.Email).ToList();
             var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
@@ -579,6 +626,210 @@ namespace Infrastructure.Identity.Services
             return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
+        public async Task<Response<ValidateInviteTokenVM>> ValidateInviteTokenAsync(string token)
+        {
+            var invite = await _inviteRepository.GetByTokenAsync(token);
+
+            if (invite == null)
+                throw new ApiException("This invitation link is invalid.");
+
+            if (invite.IsAccepted)
+                throw new ApiException("This invitation has already been accepted.");
+
+            if (invite.ExpiryDate < DateTime.UtcNow)
+                throw new ApiException("This invitation link has expired. Please contact your organization admin for a new one.");
+
+            // Check if the invited email already has an account
+            var existingUser = await _userManager.FindByEmailAsync(invite.Email);
+
+            var result = new ValidateInviteTokenVM
+            {
+                Token = invite.Token,
+                FirstName = invite.FirstName,
+                LastName = invite.LastName,
+                Email = invite.Email,
+                OrganizationId = invite.OrganizationId,
+                HasExistingAccount = existingUser != null
+            };
+
+            return new Response<ValidateInviteTokenVM>(result,
+                message: existingUser != null
+                    ? "Account found. Please log in to accept the invitation."
+                    : "Valid invitation. Please complete your registration.");
+        }
+
+        public async Task<Response<string>> RegisterViaInviteAsync(RegisterViaInviteRequest request)
+        {
+            if (request.Password != request.ConfirmPassword)
+                throw new ApiException("Passwords do not match.");
+
+            // Validate the invite token first
+            var invite = await _inviteRepository.GetByTokenAsync(request.Token);
+
+            if (invite == null)
+                throw new ApiException("This invitation link is invalid.");
+
+            if (invite.IsAccepted)
+                throw new ApiException("This invitation has already been accepted.");
+
+            if (invite.ExpiryDate < DateTime.Now)
+                throw new ApiException("This invitation link has expired. Please contact your organization admin.");
+
+            // Make sure no account already exists for this email
+            // (they should have been routed to AcceptInviteExistingUserAsync instead)
+            var existingUser = await _userManager.FindByEmailAsync(invite.Email);
+            if (existingUser != null)
+                throw new ApiException("An account already exists for this email. Please log in to accept the invitation.");
+
+            // Create the Identity user — email comes from invite, NOT from the request
+            var user = new ApplicationUser
+            {
+                Email = invite.Email,
+                UserName = invite.Email,
+                FirstName = request.FirstName,   
+                LastName = request.LastName, 
+               // AccountType = AccountType.Organization,
+            };
+
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+
+            if (createResult.Succeeded)
+            {
+                try
+                {
+                    // Assign org therapist role
+                   // await _userManager.AddToRoleAsync(user, Roles.OrgTherapist.ToString());
+
+                    // Create UserProfile
+                    var otp = GenerateOTP();
+                    var userProfile = new UserProfile
+                    {
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Email = invite.Email,
+                        PhoneNumber = request.PhoneNumber,
+                        VerificationCode = otp,
+                    };
+
+                    var profileResult = await _userProfile.AddAsync(userProfile);
+
+                    if (profileResult.Id == null)
+                    {
+                        await _userManager.DeleteAsync(user);
+                        throw new ApiException("Something went wrong while creating the user profile.");
+                    }
+
+                    // Create OrganizationUser record — linking user to the org
+                    var orgUser = new OrganizationUsers
+                    {
+                        UserId = profileResult.Id,
+                        OrganizationId = invite.OrganizationId,
+                        IsActive = true,
+                        JoinedAt = DateTime.Now,
+                        CreatedBy = profileResult.Id.ToString(),
+                    };
+
+                    await _orgUserRepository.AddAsync(orgUser);
+
+                    // Mark the invite as accepted
+                    invite.IsAccepted = true;
+                    //invite.AcceptedAt = DateTime.UtcNow;
+                    //invite.AcceptedByUserId = profileResult.Id;
+                    invite.LastModified = DateTime.Now;
+                    //invite.LastModifiedBy = profileResult.Id.ToString();
+
+                    await _inviteRepository.UpdateAsync(invite);
+
+                    // Send email confirmation — same flow as normal registration
+                    var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
+                    await _emailService.SendFluentEmailTemplate(new EmailRequest
+                    {
+                        To = user.Email,
+                        Body = string.Empty,
+                        Subject = "Confirm your Neuro-Support account",
+                        Otp = otp,
+                        FirstName = request.FirstName,
+                        LastName = request.LastName,
+                        Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{invite.Email}?code={otp}",
+                    }, templatePath);
+
+                    return new Response<string>(
+                        "Check your email for your OTP to verify your account.",
+                        message: "Registration successful. Please verify your email to continue.");
+                }
+                catch
+                {
+                    // If anything after user creation fails, roll back the Identity user
+                    await _userManager.DeleteAsync(user);
+                    throw;
+                }
+            }
+            else
+            {
+                throw new ApiException($"{string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+            }
+        }
+
+        public async Task<Response<bool>> AcceptInviteExistingUserAsync(string token)
+        {
+            var invite = await _inviteRepository.GetByTokenAsync(token);
+
+            if (invite == null)
+                throw new ApiException("This invitation link is invalid.");
+
+            if (invite.IsAccepted)
+                throw new ApiException("This invitation has already been accepted.");
+
+            if (invite.ExpiryDate < DateTime.Now)
+                throw new ApiException("This invitation link has expired. Please contact your organization admin.");
+
+            // Get the currently authenticated user
+            var authenticatedUserId = Guid.Parse(_authenticatedUser.UserId);
+
+            if (authenticatedUserId == Guid.Empty)
+                throw new ApiException("Authenticated user could not be found.");
+
+            var userProfile = await _userProfile.GetUserByIdAsync(authenticatedUserId);
+
+            if (userProfile == null)
+                throw new ApiException("User profile could not be found.");
+
+            // Ensure the logged-in user's email matches the invite
+            // Handles the personal email scenario — if they don't match,
+            // the wrong person is trying to accept this invite
+            if (!userProfile.Email.Equals(invite.Email, StringComparison.OrdinalIgnoreCase))
+                throw new ApiException(
+                    "The email address on this invitation does not match your account. " +
+                    "Please log in with the email address this invitation was sent to.");
+
+            // Make sure they're not already in an org
+            var existingMembership = await _orgUserRepository.GetActiveByUserIdAsync(authenticatedUserId);
+            if (existingMembership != null)
+                throw new ApiException("You are already a member of an organization.");
+
+            // Create the OrganizationUser record
+            var orgUser = new OrganizationUsers
+            {
+                UserId = authenticatedUserId,
+                OrganizationId = invite.OrganizationId,
+                IsActive = true,
+                JoinedAt = DateTime.UtcNow,
+                CreatedBy = authenticatedUserId.ToString(),
+            };
+
+            await _orgUserRepository.AddAsync(orgUser);
+
+            // Mark invite as accepted
+            invite.IsAccepted = true;
+            invite.AcceptedAt = DateTime.Now;
+            //invite.AcceptedByUserId = authenticatedUserId;
+            //invite.LastModifiedBy = authenticatedUserId.ToString();
+
+            await _inviteRepository.UpdateAsync(invite);
+
+            return new Response<bool>(true, "You have successfully joined the organization.");
+        }
+
         private async Task<string> SendVerificationEmail(ApplicationUser user, string origin)
         {
             var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -674,7 +925,7 @@ namespace Infrastructure.Identity.Services
         }
 
         //To Get All Users
-        public List<string> GetUsersAsync()
+        public List<Guid> GetUsersAsync()
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.User.ToString()).Result.Select(x => x.Email).ToList();
             var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
@@ -683,10 +934,10 @@ namespace Infrastructure.Identity.Services
         }
 
         //To Get All Admimn
-        public List<string> GetAdminsAsync()
+        public List<Guid> GetAdminsAsync()
         {
             var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.Admin.ToString()).Result.Select(x => x.Email).ToList();
-            var userIds =  _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
+            var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;
         }
