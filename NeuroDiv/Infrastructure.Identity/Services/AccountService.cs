@@ -41,6 +41,7 @@ namespace Infrastructure.Identity.Services
         private readonly IOrganizationUsersInviteRepositoryAsync _inviteRepository;
         private readonly IOrganizationUsersRepositoryAsync _orgUserRepository;
         private readonly IAuthenticatedUserService _authenticatedUser;
+        private readonly IOrganizationsRepositoryAsync _organizationsRepository;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager,
@@ -53,7 +54,8 @@ namespace Infrastructure.Identity.Services
                               IOptionsSnapshot<ApplicationUrl> applicationUrlSettings,
                               IOrganizationUsersInviteRepositoryAsync inviteRepository,
                               IOrganizationUsersRepositoryAsync orgUserRepository,
-                              IAuthenticatedUserService authenticatedUser)
+                              IAuthenticatedUserService authenticatedUser,
+                              IOrganizationsRepositoryAsync organizationsRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -67,6 +69,7 @@ namespace Infrastructure.Identity.Services
             _inviteRepository = inviteRepository;
             _orgUserRepository = orgUserRepository;
             _authenticatedUser = authenticatedUser;
+            _organizationsRepository = organizationsRepository;
         }
 
         //Registration Method for freelanncers/independent users
@@ -94,13 +97,14 @@ namespace Infrastructure.Identity.Services
                 {
                     var otp = GenerateOTP();
 
-                    await _userManager.AddToRoleAsync(user, ((Roles)request.RoleId).ToString());
+                    //await _userManager.AddToRoleAsync(user, ((Roles)request.RoleId).ToString());
 
                     //use the request to create a new user profile
                     var userProfile = new UserProfile
                     {
                         FirstName = request.FirstName,
                         LastName = request.LastName,
+                        OtherName = request.OtherName,
                         Email = request.Email,
                         VerificationCode = otp,
                         PhoneNumber = request.PhoneNumber,
@@ -709,6 +713,119 @@ namespace Infrastructure.Identity.Services
                 throw new ApiException(
                     $"An error occurred while confirming '{user.Email}': " +
                     string.Join(", ", result.Errors.Select(x => x.Description)));
+            }
+        }
+
+        //Registration for organizations
+        public async Task<Response<string>> RegisterOrganizationAsync(RegisterOrganizationRequest request)
+        {
+            if (request.Password != request.ConfirmPassword)
+                throw new ApiException("Passwords do not match.");
+
+            // ── Check email isn't already taken ───────────────────────────────────
+            var existingUser = await _userManager.FindByEmailAsync(request.Email);
+            if (existingUser != null)
+                throw new ApiException($"Email '{request.Email}' is already registered.");
+
+            // ── Check verified domain isn't already claimed ───────────────────────
+            // Unlike org names, two orgs cannot own the same email domain
+            if (!string.IsNullOrWhiteSpace(request.VerifiedDomain))
+            {
+                var domainTaken = await _organizationsRepository.GetByDomainAsync(request.VerifiedDomain);
+                if (domainTaken != null)
+                    throw new ApiException($"The domain '{request.VerifiedDomain}' is already associated with another organization.");
+            }
+
+            // ── Step 1: Create Identity user ──────────────────────────────────────
+            var user = new ApplicationUser
+            {
+                Email = request.Email,
+                UserName = request.Email,
+                FirstName = request.FirstName,
+                LastName = request.LastName,
+                //AccountType = AccountType.Organization,
+            };
+
+            var createResult = await _userManager.CreateAsync(user, request.Password);
+            if (!createResult.Succeeded)
+                throw new ApiException(string.Join(", ", createResult.Errors.Select(e => e.Description)));
+
+            try
+            {
+                // ── Step 2: Assign OrgAdmin role ──────────────────────────────────
+            //    await _userManager.AddToRoleAsync(user, Roles.OrgAdmin.ToString());
+
+                // ── Step 3: Create UserProfile ────────────────────────────────────
+                var otp = GenerateOTP();
+                var userProfile = new UserProfile
+                {
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    OtherName = request.OtherName,
+                    Email = request.Email,
+                    PhoneNumber = request.PhoneNumber,
+                    VerificationCode = otp,
+                };
+
+                var profileResult = await _userProfile.AddAsync(userProfile);
+                if (profileResult.Id == null)
+                {
+                    await _userManager.DeleteAsync(user);
+                    throw new ApiException("Something went wrong while creating the user profile.");
+                }
+
+                // ── Step 4: Create Organization ───────────────────────────────────
+                var organization = new Organizations
+                {
+                    Name = request.OrgName,
+                    Description = request.OrgDescription,
+                    PhoneNumber = request.OrgPhoneNumber,
+                    Address = request.OrgAddress,
+                    City = request.OrgCity,
+                    Country = request.OrgCountry,
+                    Website = request.OrgWebsite,
+                    //Domain = request.VerifiedDomain,
+                    //Status = OrganizationStatus.Active,
+                };
+
+                var orgResult = await _organizationsRepository.AddAsync(organization);
+                if (orgResult.Id == null)
+                    throw new ApiException("Something went wrong while creating the organization.");
+
+                // ── Step 5: Create OrganizationUser — link admin to org ───────────
+                var orgUser = new OrganizationUsers
+                {
+                    UserId = profileResult.Id,
+                    OrganizationId = orgResult.Id,
+                   // OrganizationRole = OrganizationRole.OrgAdmin,
+                    IsActive = true,
+                    JoinedAt = DateTime.UtcNow,
+                    CreatedBy = profileResult.Id.ToString(),
+                    Created = DateTime.UtcNow,
+                };
+
+                await _orgUserRepository.AddAsync(orgUser);
+
+                // ── Step 6: Send confirmation email ──────────────────────────────
+                await _emailService.SendFluentEmailTemplate(new EmailRequest
+                {
+                    To = request.Email,
+                    Body = string.Empty,
+                    Subject = "Confirm Your Neuro-Support Account",
+                    Otp = otp,
+                    FirstName = request.FirstName,
+                    LastName = request.LastName,
+                    Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{request.Email}?code={otp}",
+                }, "EmailTemplate/ConfirmEmail.cshtml");
+
+                return new Response<string>(
+                    "Check your email for your OTP to verify your account.",
+                    message: "Organization registered successfully. Please verify your email to continue.");
+            }
+            catch
+            {
+                await _userManager.DeleteAsync(user);
+                throw;
             }
         }
 

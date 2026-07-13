@@ -8,5 +8,6 @@ namespace Application.Interfaces.Repositories
     {
         Task<Organizations> GetByIdAsync(string Id);
         Task<List<Organizations>> GetOrganizationsAsync();
+        Task<Organizations?> GetByDomainAsync(string domain);
     }
 }

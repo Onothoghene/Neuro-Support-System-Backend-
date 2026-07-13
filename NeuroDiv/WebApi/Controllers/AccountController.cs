@@ -174,6 +174,17 @@ namespace WebApi.Controllers
             return Ok(await _accountService.ResendVerificationMailAsync(request.Email));
         }
 
+        /// <summary>
+        /// Registers a new organization admin account along with their organization.
+        /// Called after the multi-step registration form is completed on the frontend.
+        /// </summary>
+        [HttpPost("register-organization")]
+        [AllowAnonymous]
+        public async Task<IActionResult> RegisterOrganizationAsync(RegisterOrganizationRequest request)
+        {
+            return Ok(await _accountService.RegisterOrganizationAsync(request));
+        }
+
         private string GenerateIPAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))

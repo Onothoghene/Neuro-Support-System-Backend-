@@ -35,5 +35,11 @@ namespace Infrastructure.Persistence.Repositories
                                        .ToListAsync();
         }
 
+        public async Task<Organizations?> GetByDomainAsync(string domain)
+        {
+            return await _organizations.FirstOrDefaultAsync(o => o.Domain.Equals(domain, StringComparison.CurrentCultureIgnoreCase)
+                                       && !o.IsDeleted);
+        }
+
     }
 }

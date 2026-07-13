@@ -30,5 +30,6 @@ namespace Application.Interfaces
         Task<Response<ValidateInviteTokenVM>> ValidateInviteTokenAsync(string token);
         Task<Response<string>> RegisterViaInviteAsync(RegisterViaInviteRequest request);
         Task<Response<bool>> AcceptInviteExistingUserAsync(string token);
+        Task<Response<string>> RegisterOrganizationAsync(RegisterOrganizationRequest request);
     }
 }
