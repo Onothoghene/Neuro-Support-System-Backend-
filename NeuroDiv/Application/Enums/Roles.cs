@@ -1,8 +1,8 @@
 ﻿namespace Application.Enums
 {
-    public enum Roles
+    public enum SystemRoles
     {
-        Admin = 1,
+        SuperAdmin = 1,
         User = 2,
     }
 }

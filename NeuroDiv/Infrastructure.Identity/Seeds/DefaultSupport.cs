@@ -39,7 +39,7 @@ namespace Infrastructure.Identity.Seeds
                     var result = await userManager.CreateAsync(admin, "Admin@123!");
                     if (result.Succeeded)
                     {
-                        await userManager.AddToRoleAsync(admin, Roles.Admin.ToString());
+                        await userManager.AddToRoleAsync(admin, SystemRoles.SuperAdmin.ToString());
                     }
                 }
             }

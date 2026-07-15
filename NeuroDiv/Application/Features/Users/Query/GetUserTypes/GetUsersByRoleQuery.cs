@@ -30,7 +30,7 @@ namespace Application.Features.Users.Query.GetUserTypes
             {
                 var roleUsers = new List<GenericSettingsViewModel>();
 
-                var usersId =   _accountService.GetUserIdsByRoleAsync(((Roles)request.RoleId).ToString()).ToList();
+                var usersId =   _accountService.GetUserIdsByRoleAsync(((SystemRoles)request.RoleId).ToString()).ToList();
 
                 var Users = await Task.Run(() => _userProfile.GetUserProfilesByIds(usersId).ToList());
 

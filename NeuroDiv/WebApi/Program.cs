@@ -36,7 +36,6 @@ namespace WebApi
             {
                 var services = scope.ServiceProvider;
                 var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                //var logger = loggerFactory.CreateLogger("SeedLogger");
                 try
                 {
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
@@ -50,7 +49,7 @@ namespace WebApi
                     await Infrastructure.Identity.Seeds.DefaultBasicUser.SeedAsync(userManager, roleManager);
 
                     await DefaultUserProfile.SeedAsync(appDbContext);
-                    
+
                     //await DefaultAdminUserProfile.SeedAsync(appDbContext);
 
 
@@ -61,12 +60,10 @@ namespace WebApi
                 {
                     Log.Warning(ex, "An error occurred seeding the DB");
                 }
-                finally
-                {
-                    Log.CloseAndFlush();
-                }
             }
             host.Run();
+
+            Log.CloseAndFlush();
         }
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
@@ -75,18 +72,6 @@ namespace WebApi
                 {
                     webBuilder.UseStartup<Startup>();
                 });
-
-        //public static IWebHost BuildWebHost(string[] args)
-        //{
-        //    return WebHost.CreateDefaultBuilder(args)
-        //        .UseStartup<Startup>()
-        //        .UseKestrel(options =>
-        //        {
-        //            options.Limits.MaxRequestBodySize = long.MaxValue;
-        //        })
-        //        .UseIISIntegration()
-        //        .Build();
-        //}
 
     }
 

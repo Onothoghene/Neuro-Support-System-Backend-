@@ -6,6 +6,7 @@ using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
+using Domain.Defaults;
 using Domain.Entities;
 using Domain.Settings;
 using Infrastructure.Identity.Context;
@@ -42,6 +43,7 @@ namespace Infrastructure.Identity.Services
         private readonly IOrganizationUsersRepositoryAsync _orgUserRepository;
         private readonly IAuthenticatedUserService _authenticatedUser;
         private readonly IOrganizationsRepositoryAsync _organizationsRepository;
+        private readonly IOrganizationRolesRepositoryAsync _organizationRolesRepository;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager,
@@ -55,7 +57,8 @@ namespace Infrastructure.Identity.Services
                               IOrganizationUsersInviteRepositoryAsync inviteRepository,
                               IOrganizationUsersRepositoryAsync orgUserRepository,
                               IAuthenticatedUserService authenticatedUser,
-                              IOrganizationsRepositoryAsync organizationsRepository)
+                              IOrganizationsRepositoryAsync organizationsRepository,
+                              IOrganizationRolesRepositoryAsync organizationRolesRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -70,6 +73,7 @@ namespace Infrastructure.Identity.Services
             _orgUserRepository = orgUserRepository;
             _authenticatedUser = authenticatedUser;
             _organizationsRepository = organizationsRepository;
+            _organizationRolesRepository = organizationRolesRepository;
         }
 
         //Registration Method for freelanncers/independent users
@@ -593,7 +597,7 @@ namespace Infrastructure.Identity.Services
         // ── Forgot Password
         public async Task<Response<bool>> ForgotPassword(ForgotPasswordRequest model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email) ?? 
+            var user = await _userManager.FindByEmailAsync(model.Email) ??
                              throw new ApiException($"No Accounts Registered with {model.Email}.");
 
             var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
@@ -620,7 +624,7 @@ namespace Infrastructure.Identity.Services
         // ── Reset Password
         public async Task<Response<string>> ResetPassword(ResetPasswordRequest model)
         {
-            var user = await _userManager.FindByEmailAsync(model.Email) ?? 
+            var user = await _userManager.FindByEmailAsync(model.Email) ??
                             throw new ApiException($"No registered account found with '{model.Email}'.");
 
             var code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(model.Token));
@@ -727,7 +731,7 @@ namespace Infrastructure.Identity.Services
             if (existingUser != null)
                 throw new ApiException($"Email '{request.Email}' is already registered.");
 
-            // ── Check verified domain isn't already claimed ───────────────────────
+            // ── Check verified domain isn't already claimed
             // Unlike org names, two orgs cannot own the same email domain
             if (!string.IsNullOrWhiteSpace(request.VerifiedDomain))
             {
@@ -752,8 +756,8 @@ namespace Infrastructure.Identity.Services
 
             try
             {
-                // ── Step 2: Assign OrgAdmin role ──────────────────────────────────
-            //    await _userManager.AddToRoleAsync(user, Roles.OrgAdmin.ToString());
+                // Assign system-level Identity role
+                await _userManager.AddToRoleAsync(user, SystemRoles.User.ToString());
 
                 // ── Step 3: Create UserProfile ────────────────────────────────────
                 var otp = GenerateOTP();
@@ -784,7 +788,7 @@ namespace Infrastructure.Identity.Services
                     City = request.OrgCity,
                     Country = request.OrgCountry,
                     Website = request.OrgWebsite,
-                    //Domain = request.VerifiedDomain,
+                    Domain = request.VerifiedDomain,
                     //Status = OrganizationStatus.Active,
                 };
 
@@ -792,12 +796,26 @@ namespace Infrastructure.Identity.Services
                 if (orgResult.Id == null)
                     throw new ApiException("Something went wrong while creating the organization.");
 
+                // Seed default org roles for this organization ──────────────────
+                var roleEntities = DefaultOrganizationRoles.GetDefaults().Select(r => new OrganizationRoles
+                                {
+                                    OrganizationId = orgResult.Id,
+                                    Name = r.Name,
+                                    Description = r.Description,
+                                    CreatedBy = "System",
+                                    Created = DateTime.UtcNow
+                                })
+                                .ToList();
+
+                var seededRoles = await _organizationRolesRepository.AddRangeAsync(roleEntities);
+
+
                 // ── Step 5: Create OrganizationUser — link admin to org ───────────
                 var orgUser = new OrganizationUsers
                 {
                     UserId = profileResult.Id,
                     OrganizationId = orgResult.Id,
-                   // OrganizationRole = OrganizationRole.OrgAdmin,
+                    // OrganizationRole = OrganizationRole.OrgAdmin,
                     IsActive = true,
                     JoinedAt = DateTime.UtcNow,
                     CreatedBy = profileResult.Id.ToString(),
@@ -962,18 +980,6 @@ namespace Infrastructure.Identity.Services
             return BitConverter.ToString(randomBytes).Replace("-", "");
         }
 
-        private async Task<string> SendVerificationEmail(ApplicationUser user, string origin)
-        {
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var route = "api/account/confirm-email/";
-            var _enpointUri = new Uri(string.Concat($"{origin}/", route));
-            var verificationUri = QueryHelpers.AddQueryString(_enpointUri.ToString(), "userId", user.Id);
-            verificationUri = QueryHelpers.AddQueryString(verificationUri, "code", code);
-            //Email Service Call Here
-            return verificationUri;
-        }
-
         private int GenerateOTP()
         {
             int min = 1000;
@@ -1021,7 +1027,7 @@ namespace Infrastructure.Identity.Services
 
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, Roles.Admin.ToString());
+                    await _userManager.AddToRoleAsync(user, SystemRoles.SuperAdmin.ToString());
 
                     //use the request to create a new user profile
                     var userProfile = new UserProfile
@@ -1059,7 +1065,7 @@ namespace Infrastructure.Identity.Services
         //To Get All Users
         public List<Guid> GetUsersAsync()
         {
-            var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.User.ToString()).Result.Select(x => x.Email).ToList();
+            var aspUsersEmail = _userManager.GetUsersInRoleAsync(SystemRoles.User.ToString()).Result.Select(x => x.Email).ToList();
             var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;
@@ -1068,7 +1074,7 @@ namespace Infrastructure.Identity.Services
         //To Get All Admimn
         public List<Guid> GetAdminsAsync()
         {
-            var aspUsersEmail = _userManager.GetUsersInRoleAsync(Roles.Admin.ToString()).Result.Select(x => x.Email).ToList();
+            var aspUsersEmail = _userManager.GetUsersInRoleAsync(SystemRoles.SuperAdmin.ToString()).Result.Select(x => x.Email).ToList();
             var userIds = _userProfile.GetUserIdsByEmail(aspUsersEmail).Result.ToList();
 
             return userIds;

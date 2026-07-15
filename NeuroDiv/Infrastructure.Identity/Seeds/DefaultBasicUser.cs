@@ -53,7 +53,7 @@ namespace Infrastructure.Identity.Seeds
                     if (user == null)
                     {
                         await userManager.CreateAsync(defaultUser, "123Pa$$word!");
-                        await userManager.AddToRoleAsync(defaultUser, Roles.User.ToString());
+                        await userManager.AddToRoleAsync(defaultUser, SystemRoles.User.ToString());
                     }
                 }
             }
