@@ -1,5 +1,6 @@
 ﻿using Application.DTOs.Account;
 using Application.DTOs.Email;
+using Application.DTOs.OrganizationUsers;
 using Application.DTOs.OrganizationUsersInvite;
 using Application.Enums;
 using Application.Exceptions;
@@ -44,6 +45,7 @@ namespace Infrastructure.Identity.Services
         private readonly IAuthenticatedUserService _authenticatedUser;
         private readonly IOrganizationsRepositoryAsync _organizationsRepository;
         private readonly IOrganizationRolesRepositoryAsync _organizationRolesRepository;
+        private readonly IOrganizationUserRolesRepositoryAsync _organizationUserRolesRepository;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager,
@@ -58,7 +60,8 @@ namespace Infrastructure.Identity.Services
                               IOrganizationUsersRepositoryAsync orgUserRepository,
                               IAuthenticatedUserService authenticatedUser,
                               IOrganizationsRepositoryAsync organizationsRepository,
-                              IOrganizationRolesRepositoryAsync organizationRolesRepository)
+                              IOrganizationRolesRepositoryAsync organizationRolesRepository,
+                              IOrganizationUserRolesRepositoryAsync organizationUserRolesRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -74,6 +77,7 @@ namespace Infrastructure.Identity.Services
             _authenticatedUser = authenticatedUser;
             _organizationsRepository = organizationsRepository;
             _organizationRolesRepository = organizationRolesRepository;
+            _organizationUserRolesRepository = organizationUserRolesRepository;
         }
 
         //Registration Method for freelanncers/independent users
@@ -99,9 +103,10 @@ namespace Infrastructure.Identity.Services
 
                 if (result.Succeeded)
                 {
-                    var otp = GenerateOTP();
+                    // Assign system-level Identity role
+                    await _userManager.AddToRoleAsync(user, SystemRoles.User.ToString());
 
-                    //await _userManager.AddToRoleAsync(user, ((Roles)request.RoleId).ToString());
+                    var otp = GenerateOTP();
 
                     //use the request to create a new user profile
                     var userProfile = new UserProfile
@@ -114,9 +119,9 @@ namespace Infrastructure.Identity.Services
                         PhoneNumber = request.PhoneNumber,
                     };
 
-                    var resp = await _userProfile.AddAsync(userProfile);
+                    var profileResult = await _userProfile.AddAsync(userProfile);
 
-                    if (resp.Id != null)
+                    if (profileResult.Id != Guid.Empty)
                     {
                         var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
 
@@ -154,28 +159,20 @@ namespace Infrastructure.Identity.Services
 
         public async Task<Response<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, bool isOffline = false)
         {
-            var user = await _userManager.FindByEmailAsync(request.Email);
-
-            if (user == null)
-            {
-                throw new ApiException($"No Registered Account with {request.Email}.");
-            }
+            var user = await _userManager.FindByEmailAsync(request.Email) ??
+                             throw new ApiException($"No Registered Account with {request.Email}.");
 
             if (!user.EmailConfirmed)
-            {
                 throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
-            }
 
             var result = await _signInManager.PasswordSignInAsync(user.UserName, request.Password, false, lockoutOnFailure: false);
 
             if (!result.Succeeded)
-            {
                 throw new ApiException($"Invalid Credentials for '{request.Email}'.");
-            }
+            
 
-            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email);
-            if (userProfile == null)
-                throw new ApiException($"User profile not found for '{request.Email}'.");
+            var userProfile = await _userProfile.GetUserByEmailAsync(user.Email) ?? 
+                              throw new ApiException($"User profile not found for '{request.Email}'.");
 
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user, isOffline);
             AuthenticationResponse response = new AuthenticationResponse
@@ -188,6 +185,20 @@ namespace Infrastructure.Identity.Services
                 FirstName = user.FirstName,
                 LastName = user.LastName,
             };
+
+            // fetch all org memberships for this user
+            var orgMemberships = await _orgUserRepository.GetAllActiveByUserIdAsync(userProfile.Id);
+
+            response.Organizations = orgMemberships.Select(m => new UserOrganizationVM
+            {
+                OrganizationId = m.OrganizationId,
+                OrganizationName = m.Organizations.Name,
+                Role = m.User.OrganizationUserRoles.FirstOrDefault(r => r.OrganizationId == m.OrganizationId)?
+                                                   .OrganizationRoles?.Name ?? "No Role Assigned",
+                IsActive = m.IsActive
+            }).ToList();
+
+
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
@@ -324,10 +335,7 @@ namespace Infrastructure.Identity.Services
                 throw new ApiException("Passwords do not match.");
 
             // Validate the invite token first
-            var invite = await _inviteRepository.GetByTokenAsync(request.Token);
-
-            if (invite == null)
-                throw new ApiException("This invitation link is invalid.");
+            var invite = await _inviteRepository.GetByTokenAsync(request.Token) ?? throw new ApiException("This invitation link is invalid.");
 
             if (invite.IsAccepted)
                 throw new ApiException("This invitation has already been accepted.");
@@ -358,7 +366,7 @@ namespace Infrastructure.Identity.Services
                 try
                 {
                     // Assign org therapist role
-                    // await _userManager.AddToRoleAsync(user, Roles.OrgTherapist.ToString());
+                    await _userManager.AddToRoleAsync(user, SystemRoles.User.ToString());
 
                     // Create UserProfile
                     var otp = GenerateOTP();
@@ -373,7 +381,7 @@ namespace Infrastructure.Identity.Services
 
                     var profileResult = await _userProfile.AddAsync(userProfile);
 
-                    if (profileResult.Id == null)
+                    if (profileResult.Id == Guid.Empty)
                     {
                         await _userManager.DeleteAsync(user);
                         throw new ApiException("Something went wrong while creating the user profile.");
@@ -385,37 +393,71 @@ namespace Infrastructure.Identity.Services
                         UserId = profileResult.Id,
                         OrganizationId = invite.OrganizationId,
                         IsActive = true,
-                        JoinedAt = DateTime.Now,
+                        JoinedAt = DateTime.UtcNow,
                         CreatedBy = profileResult.Id.ToString(),
                     };
 
                     await _orgUserRepository.AddAsync(orgUser);
 
-                    // Mark the invite as accepted
-                    invite.IsAccepted = true;
-                    //invite.AcceptedAt = DateTime.UtcNow;
-                    //invite.AcceptedByUserId = profileResult.Id;
-                    invite.LastModified = DateTime.Now;
-                    //invite.LastModifiedBy = profileResult.Id.ToString();
-
-                    await _inviteRepository.UpdateAsync(invite);
-
-                    // Send email confirmation — same flow as normal registration
-                    var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
-                    await _emailService.SendFluentEmailTemplate(new EmailRequest
+                    var orgUserRole = new OrganizationUserRoles
                     {
-                        To = user.Email,
-                        Body = string.Empty,
-                        Subject = "Confirm your Neuro-Support account",
-                        Otp = otp,
-                        FirstName = request.FirstName,
-                        LastName = request.LastName,
-                        Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{invite.Email}?code={otp}",
-                    }, templatePath);
+                        UserId = profileResult.Id,
+                        OrganizationId = invite.OrganizationId,
+                        OrganizationRoleId = invite.OrganizationRoleId,
+                        CreatedBy = profileResult.Id.ToString(),
+                    };
+
+                    await _organizationUserRolesRepository.AddAsync(orgUserRole);
+
+                    // ── Handle Clinic Owner transfer if that role was invited ─────────
+                    var invitedRole = await _organizationRolesRepository.GetByIdAsync(invite.OrganizationRoleId);
+
+                    if (invitedRole?.Name == DefaultOrganizationRoles.ClinicOwner)
+                    {
+                        // Find current Clinic Owner and demote them to Clinic Admin
+                        var currentOwnerUserRole = await _organizationUserRolesRepository.GetCurrentClinicOwnerAsync(invite.OrganizationId);
+
+                        if (currentOwnerUserRole != null)
+                        {
+                            var clinicAdminRole = await _organizationRolesRepository.GetByNameAndOrgAsync(DefaultOrganizationRoles.ClinicAdmin, invite.OrganizationId);
+
+                            if (clinicAdminRole == null)
+                                throw new ApiException("Clinic Admin role could not be found for this organization.");
+
+                            currentOwnerUserRole.OrganizationRoleId = clinicAdminRole.Id;
+                            currentOwnerUserRole.LastModified = DateTime.UtcNow;
+                            currentOwnerUserRole.LastModifiedBy = profileResult.Id.ToString();
+
+                            await _organizationUserRolesRepository.UpdateAsync(currentOwnerUserRole);
+                        }
+                        // Mark the invite as accepted
+                        invite.IsAccepted = true;
+                        //invite.AcceptedAt = DateTime.UtcNow;
+                        //invite.AcceptedByUserId = profileResult.Id;
+                        invite.LastModified = DateTime.Now;
+                        //invite.LastModifiedBy = profileResult.Id.ToString();
+
+                        await _inviteRepository.UpdateAsync(invite);
+
+                        // Send email confirmation — same flow as normal registration
+                        var templatePath = "EmailTemplate/ConfirmEmail.cshtml";
+                        await _emailService.SendFluentEmailTemplate(new EmailRequest
+                        {
+                            To = user.Email,
+                            Body = string.Empty,
+                            Subject = "Confirm your Neuro-Support account",
+                            Otp = otp,
+                            FirstName = request.FirstName,
+                            LastName = request.LastName,
+                            Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{invite.Email}?code={otp}",
+                        }, templatePath);
+
+                    }
+
 
                     return new Response<string>(
-                        "Check your email for your OTP to verify your account.",
-                        message: "Registration successful. Please verify your email to continue.");
+        "Check your email for your OTP to verify your account.",
+        message: "Registration successful. Please verify your email to continue.");
                 }
                 catch
                 {
@@ -426,21 +468,19 @@ namespace Infrastructure.Identity.Services
             }
             else
             {
-                throw new ApiException($"{string.Join(", ", createResult.Errors.Select(e => e.Description))}");
+                throw new ApiException(string.Join(", ", createResult.Errors.Select(e => e.Description)));
             }
         }
 
         public async Task<Response<bool>> AcceptInviteExistingUserAsync(string token)
         {
-            var invite = await _inviteRepository.GetByTokenAsync(token);
-
-            if (invite == null)
-                throw new ApiException("This invitation link is invalid.");
+            var invite = await _inviteRepository.GetByTokenAsync(token) ??
+                         throw new ApiException("This invitation link is invalid.");
 
             if (invite.IsAccepted)
                 throw new ApiException("This invitation has already been accepted.");
 
-            if (invite.ExpiryDate < DateTime.Now)
+            if (invite.ExpiryDate < DateTime.UtcNow)
                 throw new ApiException("This invitation link has expired. Please contact your organization admin.");
 
             // Get the currently authenticated user
@@ -449,10 +489,8 @@ namespace Infrastructure.Identity.Services
             if (authenticatedUserId == Guid.Empty)
                 throw new ApiException("Authenticated user could not be found.");
 
-            var userProfile = await _userProfile.GetUserByIdAsync(authenticatedUserId);
-
-            if (userProfile == null)
-                throw new ApiException("User profile could not be found.");
+            var userProfile = await _userProfile.GetUserByIdAsync(authenticatedUserId) ??
+                                    throw new ApiException("User profile could not be found.");
 
             // Ensure the logged-in user's email matches the invite
             // Handles the personal email scenario — if they don't match,
@@ -463,9 +501,15 @@ namespace Infrastructure.Identity.Services
                     "Please log in with the email address this invitation was sent to.");
 
             // Make sure they're not already in an org
-            var existingMembership = await _orgUserRepository.GetActiveByUserIdAsync(authenticatedUserId);
-            if (existingMembership != null)
-                throw new ApiException("You are already a member of an organization.");
+            // var existingMembership = await _orgUserRepository.GetActiveByUserIdAsync(authenticatedUserId);
+            //if (existingMembership != null)
+            //    throw new ApiException("You are already a member of an organization.");
+
+            // a user shouldn't have duplicate membership in the same org
+            var existingMembership = await _orgUserRepository.GetByUserIdAndOrgIdAsync(authenticatedUserId, invite.OrganizationId);
+
+            if (existingMembership != null && existingMembership.IsActive)
+                throw new ApiException("You are already a member of this organization.");
 
             // Create the OrganizationUser record
             var orgUser = new OrganizationUsers
@@ -479,11 +523,51 @@ namespace Infrastructure.Identity.Services
 
             await _orgUserRepository.AddAsync(orgUser);
 
+            // Assign org role from invite via OrganizationUserRoles
+            var orgUserRole = new OrganizationUserRoles
+            {
+                UserId = authenticatedUserId,
+                OrganizationId = invite.OrganizationId,
+                OrganizationRoleId = invite.OrganizationRoleId,
+                CreatedBy = authenticatedUserId.ToString(),
+                Created = DateTime.UtcNow,
+            };
+
+            await _organizationUserRolesRepository.AddAsync(orgUserRole);
+
+            // ── Handle Clinic Owner transfer if that role was invited ─────────────
+            var invitedRole = await _organizationRolesRepository
+                .GetByIdAsync(invite.OrganizationRoleId);
+
+            if (invitedRole?.Name == DefaultOrganizationRoles.ClinicOwner)
+            {
+                var currentOwnerUserRole = await _organizationUserRolesRepository
+                    .GetCurrentClinicOwnerAsync(invite.OrganizationId);
+
+                if (currentOwnerUserRole != null)
+                {
+                    var clinicAdminRole = await _organizationRolesRepository
+                        .GetByNameAndOrgAsync(
+                            DefaultOrganizationRoles.ClinicAdmin,
+                            invite.OrganizationId);
+
+                    if (clinicAdminRole == null)
+                        throw new ApiException("Clinic Admin role could not be found for this organization.");
+
+                    currentOwnerUserRole.OrganizationRoleId = clinicAdminRole.Id;
+                    currentOwnerUserRole.LastModified = DateTime.UtcNow;
+                    currentOwnerUserRole.LastModifiedBy = authenticatedUserId.ToString();
+
+                    await _organizationUserRolesRepository.UpdateAsync(currentOwnerUserRole);
+                }
+            }
+
             // Mark invite as accepted
             invite.IsAccepted = true;
-            invite.AcceptedAt = DateTime.Now;
-            //invite.AcceptedByUserId = authenticatedUserId;
-            //invite.LastModifiedBy = authenticatedUserId.ToString();
+            invite.AcceptedAt = DateTime.UtcNow;
+            invite.LastModified = DateTime.UtcNow;
+            invite.AcceptedByUserId = authenticatedUserId;
+            invite.LastModifiedBy = authenticatedUserId.ToString();
 
             await _inviteRepository.UpdateAsync(invite);
 
@@ -772,7 +856,7 @@ namespace Infrastructure.Identity.Services
                 };
 
                 var profileResult = await _userProfile.AddAsync(userProfile);
-                if (profileResult.Id == null)
+                if (profileResult.Id == Guid.Empty)
                 {
                     await _userManager.DeleteAsync(user);
                     throw new ApiException("Something went wrong while creating the user profile.");
@@ -793,29 +877,31 @@ namespace Infrastructure.Identity.Services
                 };
 
                 var orgResult = await _organizationsRepository.AddAsync(organization);
-                if (orgResult.Id == null)
+                if (orgResult.Id == Guid.Empty)
                     throw new ApiException("Something went wrong while creating the organization.");
 
                 // Seed default org roles for this organization ──────────────────
                 var roleEntities = DefaultOrganizationRoles.GetDefaults().Select(r => new OrganizationRoles
-                                {
-                                    OrganizationId = orgResult.Id,
-                                    Name = r.Name,
-                                    Description = r.Description,
-                                    CreatedBy = "System",
-                                    Created = DateTime.UtcNow
-                                })
-                                .ToList();
+                {
+                    OrganizationId = orgResult.Id,
+                    Name = r.Name,
+                    Description = r.Description,
+                    IsDefault = true,
+                    CreatedBy = "System",
+                    Created = DateTime.UtcNow
+                }).ToList();
 
                 var seededRoles = await _organizationRolesRepository.AddRangeAsync(roleEntities);
 
+                // ── Assign Clinic Owner role to the registering admin ─────────────
+                var clinicOwnerRole = seededRoles.First(r => r.Name == DefaultOrganizationRoles.ClinicOwner);
 
                 // ── Step 5: Create OrganizationUser — link admin to org ───────────
                 var orgUser = new OrganizationUsers
                 {
                     UserId = profileResult.Id,
                     OrganizationId = orgResult.Id,
-                    // OrganizationRole = OrganizationRole.OrgAdmin,
+                    //OrganizationRoleId = clinicOwnerRole.Id,
                     IsActive = true,
                     JoinedAt = DateTime.UtcNow,
                     CreatedBy = profileResult.Id.ToString(),
@@ -823,6 +909,17 @@ namespace Infrastructure.Identity.Services
                 };
 
                 await _orgUserRepository.AddAsync(orgUser);
+
+                //Create OrganizationUserRole to link the user to the role
+                var orgUserRole = new OrganizationUserRoles
+                {
+                    UserId = profileResult.Id,
+                    OrganizationId = orgResult.Id,
+                    OrganizationRoleId = clinicOwnerRole.Id,
+                    CreatedBy = profileResult.Id.ToString(),
+                };
+
+                await _organizationUserRolesRepository.AddAsync(orgUserRole);
 
                 // ── Step 6: Send confirmation email ──────────────────────────────
                 await _emailService.SendFluentEmailTemplate(new EmailRequest

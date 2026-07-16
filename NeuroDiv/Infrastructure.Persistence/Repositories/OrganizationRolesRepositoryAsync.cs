@@ -18,19 +18,24 @@ namespace Infrastructure.Persistence.Repositories
             _organizationRoles = dbContext.Set<OrganizationRoles>();
         }
 
-        public async Task<OrganizationRoles> GetByIdAsync(string Id)
+        public async Task<OrganizationRoles> GetByIdAsync(Guid Id)
         {
-            Guid IdGuid = Guid.Parse(Id);
-
-            return await _organizationRoles.Where(x => x.Id == IdGuid && x.IsDeleted == false)
+            return await _organizationRoles.Where(x => x.Id == Id && x.IsDeleted == false)
                                            .FirstOrDefaultAsync();
         }
 
-        public async Task<OrganizationRoles> GetByOrganizationIdAsync(string organizationId)
+        public async Task<OrganizationRoles> GetByOrganizationIdAsync(Guid organizationId)
         {
-            Guid organizationIdGuid = Guid.Parse(organizationId);
-            return await _organizationRoles.Where(x => x.OrganizationId == organizationIdGuid && x.IsDeleted == false)
+            return await _organizationRoles.Where(x => x.OrganizationId == organizationId && x.IsDeleted == false)
                                            .FirstOrDefaultAsync();
+        }
+
+        // Gets an org role by name scoped to a specific org
+        public async Task<OrganizationRoles?> GetByNameAndOrgAsync(string name, Guid organizationId)
+        {
+            return await _organizationRoles.FirstOrDefaultAsync(r => r.Name == name
+                                                               && r.OrganizationId == organizationId
+                                                               && !r.IsDeleted);
         }
 
     }

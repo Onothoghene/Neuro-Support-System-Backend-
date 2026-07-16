@@ -11,8 +11,10 @@ namespace Domain.Entities
         public string Token { get; set; } // Unique link token
         public bool IsAccepted { get; set; } = false;
         public DateTime ExpiryDate { get; set; }
-        public DateTime AcceptedAt { get; set; }
+        public DateTime? AcceptedAt { get; set; }
         public Guid OrganizationId { get; set; }
+        public Guid OrganizationRoleId { get; set; }
+        public Guid? AcceptedByUserId { get; set; }
 
         public Organizations Organization { get; set; }
     }

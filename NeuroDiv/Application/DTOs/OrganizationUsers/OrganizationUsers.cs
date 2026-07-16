@@ -9,4 +9,11 @@ namespace Application.DTOs.OrganizationUsers
         public Guid OrganizationId { get; set; }
     }
 
+    public class UserOrganizationVM
+    {
+        public Guid OrganizationId { get; set; }
+        public string OrganizationName { get; set; }
+        public string Role { get; set; }
+        public bool IsActive { get; set; }
+    }
 }

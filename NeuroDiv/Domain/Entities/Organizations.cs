@@ -1,7 +1,5 @@
 ﻿using Domain.Common;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Domain.Entities
 {
@@ -10,11 +8,13 @@ namespace Domain.Entities
         public Organizations()
         {
             OrganizationUsers = new HashSet<OrganizationUsers>();
+            OrganizationRoles = new HashSet<OrganizationRoles>();
+            OrganizationUserRoles = new HashSet<OrganizationUserRoles>();
             //Activities = new HashSet<Activity>();
         }
 
         public required string Name { get; set; }
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
         public string? LogoUrl { get; set; }
         public string? Website { get; set; }
         public string? PhoneNumber { get; set; }
@@ -25,6 +25,8 @@ namespace Domain.Entities
         public string? Country { get; set; }
 
         public ICollection<OrganizationUsers> OrganizationUsers { get; set; }
-      //  public ICollection<Activity> Activities { get; set; }
+        public ICollection<OrganizationRoles> OrganizationRoles { get; set; } 
+        public ICollection<OrganizationUserRoles> OrganizationUserRoles { get; set; } 
+        //  public ICollection<Activity> Activities { get; set; }
     }
 }

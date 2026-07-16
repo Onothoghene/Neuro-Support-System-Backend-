@@ -18,6 +18,7 @@ namespace Application.Features.OrganizationUsersInvite.Command
         public required string LastName { get; set; }
         public required string Email { get; set; }
         public Guid OrganizationId { get; set; }
+        public Guid OrganizationRoleId { get; set; }
 
         public class AddOrUpdateOrganizationUsersInviteCommandHandler : IRequestHandler<AddOrUpdateOrganizationUsersInviteCommand, Response<bool>>
         {
@@ -61,6 +62,7 @@ namespace Application.Features.OrganizationUsersInvite.Command
                         orgUserInvite.LastName = command.LastName;
                         orgUserInvite.Email = command.Email;
                         orgUserInvite.OrganizationId = command.OrganizationId;
+                        orgUserInvite.OrganizationRoleId = command.OrganizationRoleId;
                         orgUserInvite.LastModifiedBy = userId;
                         orgUserInvite.LastModified = DateTime.UtcNow;
 

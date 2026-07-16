@@ -57,5 +57,18 @@ namespace Infrastructure.Persistence.Repositories
                                                                 && !o.IsDeleted);
         }
 
+        public async Task<OrganizationUsers?> GetByUserIdAndOrgIdAsync(Guid userId, Guid organizationId)
+        {
+            return await _organizationUsers.FirstOrDefaultAsync(o => o.UserId == userId && o.OrganizationId == organizationId && !o.IsDeleted);
+        }
+
+        public async Task<List<OrganizationUsers>> GetAllActiveByUserIdAsync(Guid userId)
+        {
+            return await _organizationUsers.Where(o => o.UserId == userId && o.IsActive && !o.IsDeleted)
+                                           .Include(o => o.Organizations)
+                                           .Include(o => o.User.OrganizationUserRoles.Where(r => r.OrganizationId == o.OrganizationId))
+                                           .ThenInclude(r => r.OrganizationRoles)
+                                           .ToListAsync();
+        }
     }
 }

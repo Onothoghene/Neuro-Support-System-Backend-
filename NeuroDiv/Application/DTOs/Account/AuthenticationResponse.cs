@@ -1,7 +1,6 @@
-﻿using System;
+﻿using Application.DTOs.OrganizationUsers;
+using System;
 using System.Collections.Generic;
-using System.Text;
-using System.Text.Json.Serialization;
 
 namespace Application.DTOs.Account
 {
@@ -20,5 +19,7 @@ namespace Application.DTOs.Account
         public DateTime TokenExpires { get; set; }
         public DateTime RefreshTokenExpiration { get; set; }
         public bool HasPreference { get; set; }
+
+        public List<UserOrganizationVM> Organizations { get; set; } = new();
     }
 }

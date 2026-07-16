@@ -8,7 +8,7 @@ namespace Domain.Entities
         public Guid UserId { get; set; }
         public Guid OrganizationId { get; set; }
         public bool IsActive { get; set; }
-
+       // public Guid OrganizationRoleId { get; set; }
         public DateTime JoinedAt { get; set; }
 
         public UserProfile User { get; set; }

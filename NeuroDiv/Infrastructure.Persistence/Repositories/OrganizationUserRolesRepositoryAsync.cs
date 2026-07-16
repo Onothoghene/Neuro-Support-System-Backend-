@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
+using Domain.Defaults;
 using Domain.Entities;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repository;
@@ -19,34 +20,37 @@ namespace Infrastructure.Persistence.Repositories
             _organizationUserRoles = dbContext.Set<OrganizationUserRoles>();
         }
 
-        public async Task<List<OrganizationUserRoles>> GetUserRolesInOrganization(string userId, string organizationId)
+        public async Task<List<OrganizationUserRoles>> GetUserRolesInOrganization(Guid userId, Guid organizationId)
         {
-            Guid userGuid = Guid.Parse(userId);
-            Guid organizationGuid = Guid.Parse(organizationId);
-
             return await _organizationUserRoles
-                .Where(x => x.UserId == userGuid && x.OrganizationId == organizationGuid)
+                .Where(x => x.UserId == userId && x.OrganizationId == organizationId)
                 .Include(x => x.OrganizationRoles)
                 .ToListAsync();
         }
 
-        public async Task<List<OrganizationUserRoles>> GetById(string Id)
+        public async Task<List<OrganizationUserRoles>> GetById(Guid Id)
         {
-            Guid IdGuid = Guid.Parse(Id);
-
-            return await _organizationUserRoles.Where(x => x.UserId == IdGuid)
+            return await _organizationUserRoles.Where(x => x.UserId == Id)
                                                .Include(x => x.OrganizationRoles)
                                                .ToListAsync();
         }
 
-        public async Task<List<OrganizationUserRoles>> GetByOrganizationId(string organizationId)
+        public async Task<List<OrganizationUserRoles>> GetByOrganizationId(Guid organizationId)
         {
-            Guid organizationGuid = Guid.Parse(organizationId);
-            return await _organizationUserRoles.Where(x => x.OrganizationId == organizationGuid)
+            return await _organizationUserRoles.Where(x => x.OrganizationId == organizationId)
                                                .Include(x => x.OrganizationRoles)
                                                .ThenInclude(x => x.Organizations)
                                                .Include(x => x.User)
                                                .ToListAsync();
+        }
+
+        // Gets the current Clinic Owner's role assignment record
+        public async Task<OrganizationUserRoles?> GetCurrentClinicOwnerAsync(Guid organizationId)
+        {
+            return await _organizationUserRoles.Include(r => r.OrganizationRoles)
+                                            .FirstOrDefaultAsync(r => r.OrganizationId == organizationId
+                                       && r.OrganizationRoles.Name == DefaultOrganizationRoles.ClinicOwner
+                                       && !r.IsDeleted);
         }
 
     }
