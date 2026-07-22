@@ -1,17 +1,14 @@
-﻿using Application.DTOs.Settings;
+﻿using Application.DTOs.Organizations;
 using AutoMapper;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Mappings
 {
-    public class OrganizationProfile: Profile
+    public class OrganizationProfile : Profile
     {
         public OrganizationProfile()
         {
-            //CreateMap<ProjectArea, GenericSettingsViewModel>();
+            CreateMap<Organizations, OrganizationsVM>();
 
         }
     }

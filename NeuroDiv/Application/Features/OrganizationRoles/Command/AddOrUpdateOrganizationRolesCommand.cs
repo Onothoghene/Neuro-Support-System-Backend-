@@ -71,8 +71,6 @@ namespace Application.Features.OrganizationRoles.Command
                                            ?? throw new ApiException($"A role named '{command.Name}' already exists in this organization.");
 
                         var data = _mapper.Map<Domain.Entities.OrganizationRoles>(command);
-                        data.IsDefault = false; // move to the mapping profile
-
                         await _orgRolesRepository.AddAsync(data);
 
                         ts.Complete();

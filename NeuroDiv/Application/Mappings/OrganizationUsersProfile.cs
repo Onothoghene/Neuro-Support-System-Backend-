@@ -1,9 +1,6 @@
-﻿using Application.DTOs.Settings;
+﻿using Application.DTOs.OrganizationUsers;
 using AutoMapper;
 using Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Mappings
 {
@@ -11,7 +8,7 @@ namespace Application.Mappings
     {
         public OrganizationUsersProfile()
         {
-            //CreateMap<ProjectArea, GenericSettingsViewModel>();
+            CreateMap<OrganizationUsers, OrganizationUsersVM>();
 
         }
     }
