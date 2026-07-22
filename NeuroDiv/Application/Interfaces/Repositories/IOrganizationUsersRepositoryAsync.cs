@@ -18,5 +18,7 @@ namespace Application.Interfaces.Repositories
 
         // For fetching all orgs on login
         Task<List<OrganizationUsers>> GetAllActiveByUserIdAsync(Guid userId);
+
+        Task<List<OrganizationUsers>> GetMembersAsync(Guid organizationId, string? roleName, bool? isActive, string? searchTerm, DateTime? joinedFrom, DateTime? joinedTo);
     }
 }

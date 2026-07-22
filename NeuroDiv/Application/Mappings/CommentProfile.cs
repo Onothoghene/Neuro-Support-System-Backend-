@@ -1,12 +1,7 @@
 ﻿using Application.DTOs.Comments;
-using Application.DTOs.Organizations;
-using Application.DTOs.OrganizationUserRoles;
-using Application.DTOs.OrganizationUsers;
-using Application.DTOs.OrganizationUsersInvite;
 using Application.Features.Comment.Command;
 using AutoMapper;
 using Domain.Entities;
-using System;
 
 namespace Application.Mappings
 {
@@ -14,7 +9,7 @@ namespace Application.Mappings
     {
         public CommentProfile()
         {
-            CreateMap<AddOrUpdateOrganizationRolesCommand, Comments>();
+            CreateMap<AddOrUpdateCommentCommand, Comments>();
 
             CreateMap<Comments, CommentVM>();
 

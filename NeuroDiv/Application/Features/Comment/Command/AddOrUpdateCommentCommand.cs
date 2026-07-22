@@ -10,14 +10,14 @@ using Application.Exceptions;
 
 namespace Application.Features.Comment.Command
 {
-    public class AddOrUpdateOrganizationRolesCommand : IRequest<Response<bool>>
+    public class AddOrUpdateCommentCommand : IRequest<Response<bool>>
     {
         public int? Id { get; set; }
         public int FoodId { get; set; }
         public string CommentText { get; set; }
         public double Rating { get; set; }
 
-        public class AddOrUpdateCommentCommandHandler : IRequestHandler<AddOrUpdateOrganizationRolesCommand, Response<bool>>
+        public class AddOrUpdateCommentCommandHandler : IRequestHandler<AddOrUpdateCommentCommand, Response<bool>>
         {
             private readonly IMapper _mapper;
             private readonly IAuthenticatedUserService _user;
@@ -31,7 +31,7 @@ namespace Application.Features.Comment.Command
                 _commentRepository = commentRepository;
             }
 
-            public async Task<Response<bool>> Handle(AddOrUpdateOrganizationRolesCommand command, CancellationToken cancellationToken)
+            public async Task<Response<bool>> Handle(AddOrUpdateCommentCommand command, CancellationToken cancellationToken)
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {

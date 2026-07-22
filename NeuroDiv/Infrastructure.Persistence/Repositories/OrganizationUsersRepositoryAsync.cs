@@ -70,5 +70,42 @@ namespace Infrastructure.Persistence.Repositories
                                            .ThenInclude(r => r.OrganizationRoles)
                                            .ToListAsync();
         }
+
+        public async Task<List<OrganizationUsers>> GetMembersAsync(Guid organizationId, string? roleName, bool? isActive, string? searchTerm, DateTime? joinedFrom, DateTime? joinedTo)
+        {
+            var query = _organizationUsers.Where(o => o.OrganizationId == organizationId && !o.IsDeleted)
+                                          .Include(o => o.User)
+                                          .ThenInclude(u => u.OrganizationUserRoles
+                                          .Where(r => r.OrganizationId == organizationId))
+                                          .ThenInclude(r => r.OrganizationRoles)
+                                          .AsQueryable();
+
+            // Filter by active status
+            if (isActive.HasValue) query = query.Where(o => o.IsActive == isActive.Value);
+
+            // Filter by role name
+            if (!string.IsNullOrWhiteSpace(roleName))
+                query = query.Where(o => o.User.OrganizationUserRoles
+                             .Any(r => r.OrganizationId == organizationId && r.OrganizationRoles.Name == roleName));
+
+            // Search by name or email
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var term = searchTerm.ToLower();
+                query = query.Where(o => o.User.FirstName.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+                                    o.User.LastName.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+                                    o.User.LastName.Contains(term, StringComparison.CurrentCultureIgnoreCase) ||
+                                    o.User.Email.Contains(term, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            // Filter by join date range
+            if (joinedFrom.HasValue)
+                query = query.Where(o => o.JoinedAt >= joinedFrom.Value);
+
+            if (joinedTo.HasValue)
+                query = query.Where(o => o.JoinedAt <= joinedTo.Value);
+
+            return await query.ToListAsync();
+        }
     }
 }

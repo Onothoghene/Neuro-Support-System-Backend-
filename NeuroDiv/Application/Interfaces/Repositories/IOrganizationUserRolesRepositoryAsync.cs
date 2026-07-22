@@ -11,5 +11,6 @@ namespace Application.Interfaces.Repositories
         Task<List<OrganizationUserRoles>> GetById(Guid Id);
         Task<List<OrganizationUserRoles>> GetByOrganizationId(Guid organizationId);
         Task<OrganizationUserRoles?> GetCurrentClinicOwnerAsync(Guid organizationId);
+        Task<OrganizationUserRoles?> GetUserRoleInOrgAsync(Guid userId, Guid organizationId);
     }
 }

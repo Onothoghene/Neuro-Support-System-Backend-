@@ -19,11 +19,9 @@ namespace Infrastructure.Persistence.Repositories
             _organizations = dbContext.Set<Organizations>();
         }
 
-        public async Task<Organizations> GetByIdAsync(string Id)
+        public async Task<Organizations> GetByIdAsync(Guid Id)
         {
-            Guid IdGuid = Guid.Parse(Id);
-
-            return await _organizations.Where(x => x.Id == IdGuid && x.IsDeleted == false)
+            return await _organizations.Where(x => x.Id == Id && x.IsDeleted == false)
                                        .Include(x => x.OrganizationUsers)
                                        .FirstOrDefaultAsync();
         }

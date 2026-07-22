@@ -28,6 +28,7 @@ namespace Infrastructure.Shared
             services.AddTransient<IDateTimeService, DateTimeService>();
             services.AddTransient<IEmailService, EmailService>();
             services.AddTransient<IFileZipService, FileZipService>();
+            services.AddTransient<IOrganizationPermissionService, OrganizationPermissionService>();
 
            var client = new SmtpClient
             {

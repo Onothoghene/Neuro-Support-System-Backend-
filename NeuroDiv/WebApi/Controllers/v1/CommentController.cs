@@ -42,7 +42,7 @@ namespace WebApi.Controllers.v1
         /// <returns></returns>
         [Authorize]
         [HttpPut("")]
-        public async Task<IActionResult> AddOrUpdateComments(AddOrUpdateOrganizationRolesCommand command)
+        public async Task<IActionResult> AddOrUpdateComments(AddOrUpdateCommentCommand command)
         {
             return Ok(await Mediator.Send(command));
         }

@@ -4,6 +4,7 @@ using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,10 +25,13 @@ namespace Infrastructure.Persistence.Repositories
                                            .FirstOrDefaultAsync();
         }
 
-        public async Task<OrganizationRoles> GetByOrganizationIdAsync(Guid organizationId)
+        public async Task<List<OrganizationRoles>> GetByOrganizationIdAsync(Guid organizationId)
         {
             return await _organizationRoles.Where(x => x.OrganizationId == organizationId && x.IsDeleted == false)
-                                           .FirstOrDefaultAsync();
+                                           .OrderBy(r => r.IsDefault)
+                                           .ThenBy(r => r.Name)
+                                           .ToListAsync();
+                                           
         }
 
         // Gets an org role by name scoped to a specific org

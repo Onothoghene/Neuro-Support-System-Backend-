@@ -53,5 +53,12 @@ namespace Infrastructure.Persistence.Repositories
                                        && !r.IsDeleted);
         }
 
+        public async Task<OrganizationUserRoles?> GetUserRoleInOrgAsync(Guid userId, Guid organizationId)
+        {
+            return await _organizationUserRoles.Include(r => r.OrganizationRoles)
+                                               .FirstOrDefaultAsync(r => r.UserId == userId && 
+                                               r.OrganizationId == organizationId && !r.IsDeleted);
+        }
+
     }
 }
