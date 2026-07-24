@@ -83,7 +83,7 @@ namespace Infrastructure.Identity.Services
             _emailChangeRequestRepository = emailChangeRequestRepository;
         }
 
-        //Registration Method for freelanncers/independent users
+        // ── Registration Method for freelanncers/independent users
         public async Task<Response<string>> RegisterAsync(RegisterRequest request)
         {
             var userWithSameUserName = await _userManager.FindByNameAsync(request.Email);
@@ -621,7 +621,7 @@ namespace Infrastructure.Identity.Services
             return new Response<AuthenticationResponse>(response, $"Token refreshed for {user.UserName}.");
         }
 
-        // ── Verify OTP (email confirmation) ──────────────────────────────────────────
+        // ── Verify OTP (email confirmation)
         public async Task<Response<bool>> VerifyUser(int otp)
         {
             var userProfile = await _userProfile.GetUserByOtpAsync(otp);
@@ -807,7 +807,7 @@ namespace Infrastructure.Identity.Services
             }
         }
 
-        //Registration for organizations
+        // ── Registration for organizations
         public async Task<Response<string>> RegisterOrganizationAsync(RegisterOrganizationRequest request)
         {
             if (request.Password != request.ConfirmPassword)
@@ -947,7 +947,7 @@ namespace Infrastructure.Identity.Services
             }
         }
 
-        //Email change request
+        // ── Request Email Change
         public async Task<Response<string>> RequestEmailChangeAsync(RequestEmailChangeRequest request)
         {
             var userProfileId = _authenticatedUser.UserId ?? throw new ApiException("Authenticated user could not be found.");
@@ -1005,6 +1005,7 @@ namespace Infrastructure.Identity.Services
                                         message: "Email change requested successfully.");
         }
 
+        // ── Confirm Email Change 
         public async Task<Response<string>> ConfirmEmailChangeAsync(ConfirmEmailChangeRequest request)
         {
             var userProfileId = _authenticatedUser.UserId ?? 
