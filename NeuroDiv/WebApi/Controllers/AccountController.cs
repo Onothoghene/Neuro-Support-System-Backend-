@@ -185,6 +185,27 @@ namespace WebApi.Controllers
             return Ok(await _accountService.RegisterOrganizationAsync(request));
         }
 
+        /// <summary>
+        /// Step 1 of email change — validates password and sends OTP to new email.
+        /// </summary>
+        [HttpPost("request-email-change")]
+        [Authorize]
+        public async Task<IActionResult> RequestEmailChange(RequestEmailChangeRequest request)
+        {
+            return Ok(await _accountService.RequestEmailChangeAsync(request));
+        }
+
+        /// <summary>
+        /// Step 2 of email change — verifies OTP and applies the new email.
+        /// Forces re-login after success.
+        /// </summary>
+        [HttpPost("confirm-email-change")]
+        [Authorize]
+        public async Task<IActionResult> ConfirmEmailChange(ConfirmEmailChangeRequest request)
+        {
+            return Ok(await _accountService.ConfirmEmailChangeAsync(request));
+        }
+
         private string GenerateIPAddress()
         {
             if (Request.Headers.ContainsKey("X-Forwarded-For"))

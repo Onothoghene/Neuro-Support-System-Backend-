@@ -32,7 +32,7 @@ namespace Infrastructure.Persistence.Repositories
             return _userProfile.Where(x => x.Email == email).FirstOrDefaultAsync();
         }
 
-        public Task<UserProfile> GetUserByIdAsync(Guid userId)
+        public Task<UserProfile?> GetUserByIdAsync(Guid userId)
         {
             //Guid userIdGuid = Guid.Parse(userId);
             return _userProfile.Where(x => x.Id == userId).FirstOrDefaultAsync();

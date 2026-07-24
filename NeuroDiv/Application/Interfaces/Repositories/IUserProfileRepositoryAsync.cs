@@ -11,7 +11,7 @@ namespace Application.Interfaces.Repositories
         
         Task<UserProfile> GetUserByOtpAsync(int otp);
         Task<UserProfile> GetUserByEmailAsync(string email);
-        Task<UserProfile> GetUserByIdAsync(Guid userId);
+        Task<UserProfile?> GetUserByIdAsync(Guid userId);
         Task<List<Guid>> GetUserIdsByEmail(List<string> emails);
         IQueryable<UserProfile> GetUserProfilesByIds(List<Guid> ids);
         IQueryable<UserProfile> GetUserProfilesByIds(IQueryable<Guid> ids);

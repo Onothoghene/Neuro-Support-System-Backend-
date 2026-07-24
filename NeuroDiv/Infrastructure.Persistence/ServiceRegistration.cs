@@ -40,6 +40,7 @@ namespace Infrastructure.Persistence
             services.AddTransient<IOrganizationUserRolesRepositoryAsync, OrganizationUserRolesRepositoryAsync>();
             services.AddTransient<IOrganizationsRepositoryAsync, OrganizationsRepositoryAsync>();
             services.AddTransient<IOrganizationRolesRepositoryAsync, OrganizationRolesRepositoryAsync>();
+            services.AddTransient<IEmailChangeRequestRepositoryAsync, EmailChangeRequestRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             //services.AddTransient<IAddressRepositoryAsync, AddressRepositoryAsync>();

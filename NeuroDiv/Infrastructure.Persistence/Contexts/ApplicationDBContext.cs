@@ -26,6 +26,7 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<OrganizationUsersInvite> OrganizationUsersInvite { get; set; }
         public DbSet<OrganizationRoles> OrganizationRoles { get; set; }
         public DbSet<OrganizationUserRoles> OrganizationUserRoles { get; set; }
+        public DbSet<EmailChangeRequest> EmailChangeRequest { get; set; }
         public DbSet<Comments> Comments { get; set; }
         public DbSet<FileTemp> FileTemp { get; set; }
         public DbSet<Payment> Payment { get; set; }

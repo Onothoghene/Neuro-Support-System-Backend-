@@ -88,6 +88,7 @@ namespace Infrastructure.Persistence.Repository
                  .Set<T>()
                  .ToListAsync();
         }
+
         public async Task<T> GetFirstAsync()
         {
             return await _dbContext.Set<T>().FirstOrDefaultAsync();

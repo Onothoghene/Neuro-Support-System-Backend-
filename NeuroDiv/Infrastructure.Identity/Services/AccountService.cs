@@ -46,6 +46,7 @@ namespace Infrastructure.Identity.Services
         private readonly IOrganizationsRepositoryAsync _organizationsRepository;
         private readonly IOrganizationRolesRepositoryAsync _organizationRolesRepository;
         private readonly IOrganizationUserRolesRepositoryAsync _organizationUserRolesRepository;
+        private readonly IEmailChangeRequestRepositoryAsync _emailChangeRequestRepository;
 
         public AccountService(UserManager<ApplicationUser> userManager,
                               RoleManager<IdentityRole> roleManager,
@@ -61,7 +62,8 @@ namespace Infrastructure.Identity.Services
                               IAuthenticatedUserService authenticatedUser,
                               IOrganizationsRepositoryAsync organizationsRepository,
                               IOrganizationRolesRepositoryAsync organizationRolesRepository,
-                              IOrganizationUserRolesRepositoryAsync organizationUserRolesRepository)
+                              IOrganizationUserRolesRepositoryAsync organizationUserRolesRepository,
+                              IEmailChangeRequestRepositoryAsync emailChangeRequestRepository)
         {
             _userManager = userManager;
             _roleManager = roleManager;
@@ -78,6 +80,7 @@ namespace Infrastructure.Identity.Services
             _organizationsRepository = organizationsRepository;
             _organizationRolesRepository = organizationRolesRepository;
             _organizationUserRolesRepository = organizationUserRolesRepository;
+            _emailChangeRequestRepository = emailChangeRequestRepository;
         }
 
         //Registration Method for freelanncers/independent users
@@ -942,6 +945,121 @@ namespace Infrastructure.Identity.Services
                 await _userManager.DeleteAsync(user);
                 throw;
             }
+        }
+
+        //Email change request
+        public async Task<Response<string>> RequestEmailChangeAsync(RequestEmailChangeRequest request)
+        {
+            var userProfileId = _authenticatedUser.UserId ?? throw new ApiException("Authenticated user could not be found.");
+
+            var userProfile = await _userProfile.GetUserByIdAsync(Guid.Parse(userProfileId)) 
+                              ?? throw new ApiException("User profile could not be found.");
+
+            // Check new email isn't the same as current
+            if (userProfile.Email.Equals(request.NewEmail, StringComparison.OrdinalIgnoreCase))
+                throw new ApiException("The new email cannot be the same as your current email.");
+
+            // Check new email isn't already taken
+            var existingUser = await _userManager.FindByEmailAsync(request.NewEmail) 
+                               ?? throw new ApiException($"'{request.NewEmail}' is already registered to another account.");
+
+            // Validate password
+            var identityUser = await _userManager.FindByEmailAsync(userProfile.Email) ?? 
+                               throw new ApiException("Associated account could not be found.");
+
+            var passwordValid = await _userManager.CheckPasswordAsync(identityUser, request.Password);
+            if (!passwordValid)
+                throw new ApiException("Incorrect password. Please try again.");
+
+            // Check no active pending request already exists
+            var existingRequest = await _emailChangeRequestRepository.GetPendingByUserProfileIdAsync(Guid.Parse(userProfileId)) ?? 
+                                  throw new ApiException("A pending email change request already exists. Please check your inbox or wait for it to expire before requesting again.");
+
+            // Create new email change request record
+            var otp = GenerateOTP();
+            var emailChangeRequest = new EmailChangeRequest
+            {
+                UserId = Guid.Parse(userProfileId),
+                CurrentEmail = userProfile.Email,
+                NewEmail = request.NewEmail,
+                OtpCode = otp,
+                ExpiresAt = DateTime.UtcNow.AddMinutes(15),
+                IsUsed = false,
+            };
+
+            await _emailChangeRequestRepository.AddAsync(emailChangeRequest);
+
+            // Send OTP to the NEW email
+            await _emailService.SendFluentEmailTemplate(new EmailRequest
+            {
+                To = request.NewEmail,
+                Body = string.Empty,
+                Subject = "Confirm Your New Email Address",
+                Otp = otp,
+                FirstName = userProfile.FirstName,
+                LastName = userProfile.LastName,
+                Url = $"{_applicationUrlSettings.ConfirmEmailUrl}{request.NewEmail}?code={otp}",
+            }, "EmailTemplate/ConfirmEmail.cshtml");
+
+            return new Response<string>($"A verification code has been sent to '{request.NewEmail}'.",
+                                        message: "Email change requested successfully.");
+        }
+
+        public async Task<Response<string>> ConfirmEmailChangeAsync(ConfirmEmailChangeRequest request)
+        {
+            var userProfileId = _authenticatedUser.UserId ?? 
+                                throw new ApiException("Authenticated user could not be found.");
+
+            var userProfile = await _userProfile.GetUserByIdAsync(Guid.Parse(userProfileId)) ??
+                              throw new ApiException("User profile could not be found.");
+
+            // Get the pending request from the dedicated table
+            var emailChangeRequest = await _emailChangeRequestRepository.GetPendingByUserProfileIdAsync(Guid.Parse(userProfileId)) ??
+                                     throw new ApiException("No pending email change found. Please request an email change first.");
+
+            // Validate OTP
+            if (emailChangeRequest.OtpCode != request.Otp)
+                throw new ApiException("Invalid verification code. Please try again.");
+
+            // Double-check new email still isn't taken
+            var existingUser = await _userManager.FindByEmailAsync(emailChangeRequest.NewEmail) ?? 
+                               throw new ApiException($"'{emailChangeRequest.NewEmail}' has been registered by another account. " +
+                                                      "Please request a new email change with a different address.");
+
+            // Update Identity user
+            var identityUser = await _userManager.FindByEmailAsync(userProfile.Email) ?? 
+                               throw new ApiException("Associated account could not be found.");
+
+            identityUser.Email = emailChangeRequest.NewEmail;
+            identityUser.UserName = emailChangeRequest.NewEmail;
+            identityUser.NormalizedEmail = emailChangeRequest.NewEmail.ToUpper();
+            identityUser.NormalizedUserName = emailChangeRequest.NewEmail.ToUpper();
+            identityUser.EmailConfirmed = true;
+
+            // Clear all refresh tokens — forces re-login with new email
+            if (identityUser.RefreshTokens != null)
+                identityUser.RefreshTokens.Clear();
+
+            var updateResult = await _userManager.UpdateAsync(identityUser);
+            if (!updateResult.Succeeded)
+                throw new ApiException(string.Join(", ", updateResult.Errors.Select(e => e.Description)));
+
+            // Update UserProfile email
+            userProfile.Email = emailChangeRequest.NewEmail;
+            userProfile.LastModified = DateTime.UtcNow;
+            userProfile.LastModifiedBy = userProfileId;
+
+            await _userProfile.UpdateAsync(userProfile);
+
+            // Mark the request as used — prevents OTP replay
+            emailChangeRequest.IsUsed = true;
+            emailChangeRequest.LastModified = DateTime.UtcNow;
+            emailChangeRequest.LastModifiedBy = userProfileId;
+
+            await _emailChangeRequestRepository.UpdateAsync(emailChangeRequest);
+
+            return new Response<string>(emailChangeRequest.NewEmail, 
+                                        message: "Email updated successfully. Please log in again with your new email.");
         }
 
         public List<Guid> GetUserIdsByRoleAsync(string role)
