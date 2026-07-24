@@ -11,6 +11,7 @@ namespace Application.Mappings
         public PersonalDetailsProfile()
         {
             CreateMap<UserProfile, UserDetailsVM>()
+               //   .ForMember(dest => dest.TherapistProfile, opt => opt.MapFrom(src => src.TherapistProfile));
                   .AfterMap<PersonalDetailsMappingAction>();
 
            }
