@@ -1,15 +1,12 @@
-﻿using Application.DTOs.PersonalDetails;
-using Application.Enums;
+﻿using Application.DTOs.Users;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
-using System;
 using System.IO;
-using System.Linq;
 
 namespace Application.Mappings.Actions
 {
-    public class PersonalDetailsMappingAction : IMappingAction<UserProfile, PersonalDetailsVM>
+    public class PersonalDetailsMappingAction : IMappingAction<UserProfile, UserDetailsVM>
     {
         private readonly IDateTimeService _dateTime;
         private readonly IFileUploadService _fileUpload;
@@ -24,7 +21,7 @@ namespace Application.Mappings.Actions
             //_titleRepo = titleRepo;
         }
 
-        public void Process(UserProfile source, PersonalDetailsVM destination, ResolutionContext context)
+        public void Process(UserProfile source, UserDetailsVM destination, ResolutionContext context)
         {
         }
     }

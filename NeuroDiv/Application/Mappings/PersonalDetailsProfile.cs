@@ -1,11 +1,8 @@
-﻿using Application.DTOs.PersonalDetails;
-using Application.Enums;
+﻿using Application.DTOs.Users;
 using Application.Mappings.Actions;
 using AutoMapper;
 using Domain.Entities;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Application.Mappings
 {
@@ -13,7 +10,7 @@ namespace Application.Mappings
     {
         public PersonalDetailsProfile()
         {
-            CreateMap<UserProfile, PersonalDetailsVM>()
+            CreateMap<UserProfile, UserDetailsVM>()
                   .AfterMap<PersonalDetailsMappingAction>();
 
            }
