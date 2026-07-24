@@ -36,11 +36,14 @@ namespace Infrastructure.Persistence
 
             services.AddTransient<IUserProfileRepositoryAsync, UserProfileRepositoryAsync>();
             services.AddTransient<IOrganizationUsersInviteRepositoryAsync, OrganizationUsersInviteRepositoryAsync>();
+            services.AddTransient<IOrganizationUsersRepositoryAsync, OrganizationUsersRepositoryAsync>();
             services.AddTransient<IOrganizationRolesRepositoryAsync, OrganizationRolesRepositoryAsync>();
             services.AddTransient<IOrganizationUserRolesRepositoryAsync, OrganizationUserRolesRepositoryAsync>();
             services.AddTransient<IOrganizationsRepositoryAsync, OrganizationsRepositoryAsync>();
             services.AddTransient<IOrganizationRolesRepositoryAsync, OrganizationRolesRepositoryAsync>();
             services.AddTransient<IEmailChangeRequestRepositoryAsync, EmailChangeRequestRepositoryAsync>();
+            services.AddTransient<ITherapistProfileRepositoryAsync, TherapistProfileRepositoryAsync>();
+            services.AddTransient<ITherapistSpecializationRepositoryAsync, TherapistSpecializationRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             //services.AddTransient<IAddressRepositoryAsync, AddressRepositoryAsync>();

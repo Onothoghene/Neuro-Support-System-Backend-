@@ -22,8 +22,8 @@ namespace Domain.Entities
         public bool? IsLoggedIn { get; set; }
         public DateTime? LastDateLoggedIn { get; set; }
 
-        public ICollection<OrganizationUserRoles> OrganizationUserRoles { get; set; }
+        public ICollection<OrganizationUserRoles?> OrganizationUserRoles { get; set; }
         public ICollection<EmailChangeRequest> EmailChangeRequest { get; set; }
-        //public TherapistProfile? TherapistProfile { get; set; }
+        public TherapistProfile? TherapistProfile { get; set; }
     }
 }

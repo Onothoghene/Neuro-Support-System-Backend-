@@ -18,6 +18,11 @@ namespace WebApi.Controllers.v1
         /// Filterable by role, status, name/email, and join date.
         /// </summary>
         /// <param name="organizationId"></param>
+        /// <param name="roleName"></param>
+        /// <param name="isActive"></param>
+        /// <param name="searchTerm"></param>
+        /// <param name="joinedFrom"></param>
+        /// <param name="joinedTo"></param>
         /// <returns></returns>
         [Authorize]
         [HttpGet("{organizationId?}")]
@@ -25,7 +30,10 @@ namespace WebApi.Controllers.v1
                                                          [FromQuery] bool? isActive, [FromQuery] string? searchTerm,
                                                          [FromQuery] DateTime? joinedFrom, [FromQuery] DateTime? joinedTo)
         {
-            return Ok(await Mediator.Send(new GetOrganizationMembersQuery { OrganizationId = organizationId }));
+            return Ok(await Mediator.Send(new GetOrganizationMembersQuery { OrganizationId = organizationId, 
+                                                                            RoleName = roleName, IsActive = isActive, 
+                                                                            SearchTerm = searchTerm, JoinedFrom = joinedFrom, 
+                                                                            JoinedTo = joinedTo }));
         }
 
         /// <summary>
