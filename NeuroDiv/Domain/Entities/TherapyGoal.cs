@@ -1,6 +1,6 @@
 ﻿using Domain.Common;
+using Domain.Enums;
 using System;
-using System.Collections.Generic;
 
 namespace Domain.Entities
 {
@@ -23,11 +23,4 @@ namespace Domain.Entities
         public GoalCategory GoalCategory { get; set; }
     }
 
-    public enum GoalStatus
-    {
-        NotStarted = 0,
-        InProgress = 1,
-        Achieved = 2,
-        OnHold = 3
-    }
 }

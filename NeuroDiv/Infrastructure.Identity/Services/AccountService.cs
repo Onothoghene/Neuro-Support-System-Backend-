@@ -2,7 +2,6 @@
 using Application.DTOs.Email;
 using Application.DTOs.OrganizationUsers;
 using Application.DTOs.OrganizationUsersInvite;
-using Application.Enums;
 using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
@@ -26,6 +25,7 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Domain.Enums;
 
 namespace Infrastructure.Identity.Services
 {

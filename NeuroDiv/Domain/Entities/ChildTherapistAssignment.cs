@@ -1,6 +1,6 @@
 ﻿using Domain.Common;
+using Domain.Enums;
 using System;
-using System.Collections.Generic;
 
 namespace Domain.Entities
 {
@@ -24,13 +24,6 @@ namespace Domain.Entities
         // Navigation
         public ChildProfile ChildProfile { get; set; }
         public UserProfile Therapist { get; set; }
-    }
-
-    public enum AssignmentRole
-    {
-        Primary = 0,
-        Secondary = 1,
-        Specialist = 2
     }
 
 }

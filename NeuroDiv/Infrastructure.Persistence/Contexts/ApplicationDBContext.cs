@@ -27,6 +27,15 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<OrganizationRoles> OrganizationRoles { get; set; }
         public DbSet<OrganizationUserRoles> OrganizationUserRoles { get; set; }
         public DbSet<EmailChangeRequest> EmailChangeRequest { get; set; }
+        public DbSet<DiagnosisType> DiagnosisType { get; set; }
+        public DbSet<ChildProfile> ChildProfile { get; set; }
+        public DbSet<ParentProfile> ParentProfile { get; set; }
+        public DbSet<ChildParent> ChildParent { get; set; }
+        public DbSet<ChildTherapistAssignment> ChildTherapistAssignment { get; set; }
+        public DbSet<GoalCategory> GoalCategory { get; set; }
+        public DbSet<TherapyGoal> TherapyGoal { get; set; }
+
+
         public DbSet<Comments> Comments { get; set; }
         public DbSet<FileTemp> FileTemp { get; set; }
         public DbSet<Payment> Payment { get; set; }

@@ -1,5 +1,5 @@
 ﻿using Application.DTOs.Payment;
-using Application.Enums;
+using Domain.Enums;
 using Application.Features.Comment.Command;
 using AutoMapper;
 using Domain.Entities;
