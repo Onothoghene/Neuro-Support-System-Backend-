@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces.Repositories;
-using Domain.Defaults;
+using Domain.Seeds;
 using Domain.Entities;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repository;

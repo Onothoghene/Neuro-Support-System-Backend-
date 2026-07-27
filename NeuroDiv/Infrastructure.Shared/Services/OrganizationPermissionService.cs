@@ -1,7 +1,7 @@
 ﻿using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
-using Domain.Defaults;
+using Domain.Seeds;
 using Domain.Entities;
 using System;
 using System.Linq;

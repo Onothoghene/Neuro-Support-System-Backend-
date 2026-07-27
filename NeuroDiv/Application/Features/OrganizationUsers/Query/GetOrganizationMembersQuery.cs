@@ -4,7 +4,7 @@ using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
-using Domain.Defaults;
+using Domain.Seeds;
 using MediatR;
 using System;
 using System.Collections.Generic;

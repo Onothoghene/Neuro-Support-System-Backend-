@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Domain.Defaults
+namespace Domain.Seeds
 {
     public static class DefaultOrganizationRoles
     {

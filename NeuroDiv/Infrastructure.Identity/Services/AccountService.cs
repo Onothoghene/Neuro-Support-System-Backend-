@@ -7,7 +7,7 @@ using Application.Exceptions;
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
-using Domain.Defaults;
+using Domain.Seeds;
 using Domain.Entities;
 using Domain.Settings;
 using Infrastructure.Identity.Context;
