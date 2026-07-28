@@ -6,6 +6,6 @@ namespace Application.Interfaces.Repositories
 {
     public interface ITherapyGoalRepositoryAsync : IGenericRepositoryAsync<TherapyGoal>
     {
-       
+        Task<TherapyGoal?> GetByIdAsync(Guid id);
     }
 }

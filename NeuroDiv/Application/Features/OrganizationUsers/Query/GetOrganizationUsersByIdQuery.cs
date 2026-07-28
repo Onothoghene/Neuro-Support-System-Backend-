@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
+using System;
 
 namespace Application.Features.OrganizationUsers.Query
 {
     public class GetOrganizationUsersByIdQuery : IRequest<Response<CommentVM>>
     {
-        public int organizationUserId { get; set; }
+        public Guid organizationUserId { get; set; }
 
         public class GetOrganizationUsersByIdQueryHandler : IRequestHandler<GetOrganizationUsersByIdQuery, Response<CommentVM>>
         {

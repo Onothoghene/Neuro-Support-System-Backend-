@@ -4,7 +4,6 @@ using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using MediatR;
 using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -13,7 +12,7 @@ namespace Application.Features.OrganizationUsersInvite.Command
 {
     public class DeleteOrganizationUsersInviteCommand : IRequest<Response<bool>>
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public class DeleteOrganizationUsersInviteCommandHandler : IRequestHandler<DeleteOrganizationUsersInviteCommand, Response<bool>>
         {

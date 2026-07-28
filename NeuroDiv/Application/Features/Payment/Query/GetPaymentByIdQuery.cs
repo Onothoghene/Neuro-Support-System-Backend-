@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Payment;
+using System;
 
 namespace Application.Features.Payment.Query
 {
     public class GetPaymentByIdQuery : IRequest<Response<PaymentVM>>
     {
-        public int paymentId { get; set; }
+        public Guid paymentId { get; set; }
 
         public class GetPaymentByIdQueryHandler : IRequestHandler<GetPaymentByIdQuery, Response<PaymentVM>>
         {

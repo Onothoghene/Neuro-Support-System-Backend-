@@ -20,7 +20,7 @@ namespace Application.Interfaces
         List<Guid> GetUserIdsByRoleAsync(string role);
         Task<Response<string>> ResendVerificationMailAsync(string email);
         Task<string> GetUserRoleByEmail(string email);
-        Task<string> GetUserRoleById(int userId);
+        Task<string> GetUserRoleById(Guid userId);
         Response<AuthenticationResponse> PeriodicAuthentication(AuthenticationRequest request);
         Task<Response<string>> CreateAdmin(RegisterRequest request);
         List<Guid> GetUsersAsync();

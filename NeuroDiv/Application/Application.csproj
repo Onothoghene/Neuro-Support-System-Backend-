@@ -25,5 +25,5 @@
 	<ItemGroup>
 		<Folder Include="Features\Settings\Query\" />
 	</ItemGroup>
-
+	
 </Project>

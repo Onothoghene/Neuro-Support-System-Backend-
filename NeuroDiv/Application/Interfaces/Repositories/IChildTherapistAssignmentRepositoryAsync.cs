@@ -6,6 +6,7 @@ namespace Application.Interfaces.Repositories
 {
     public interface IChildTherapistAssignmentRepositoryAsync : IGenericRepositoryAsync<ChildTherapistAssignment>
     {
-      
+        Task<ChildTherapistAssignment?> GetActiveAssignmentAsync(Guid childId, Guid therapistId);
+        Task<ChildTherapistAssignment?> GetByIdAsync(Guid id);
     }
 }

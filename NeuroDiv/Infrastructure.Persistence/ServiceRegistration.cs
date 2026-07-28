@@ -44,9 +44,15 @@ namespace Infrastructure.Persistence
             services.AddTransient<IEmailChangeRequestRepositoryAsync, EmailChangeRequestRepositoryAsync>();
             services.AddTransient<ITherapistProfileRepositoryAsync, TherapistProfileRepositoryAsync>();
             services.AddTransient<ITherapistSpecializationRepositoryAsync, TherapistSpecializationRepositoryAsync>();
+            services.AddTransient<IParentProfileRepositoryAsync, ParentProfileRepositoryAsync>();
+            services.AddTransient<IChildProfileRepositoryAsync, ChildProfileRepositoryAsync>();
+            services.AddTransient<IGoalCategoryRepositoryAsync, GoalCategoryRepositoryAsync>();
+            services.AddTransient<IChildTherapistAssignmentRepositoryAsync, ChildTherapistAssignmentRepositoryAsync>();
+            services.AddTransient<ITherapyGoalRepositoryAsync, TherapyGoalRepositoryAsync>();
+            services.AddTransient<IChildParentRepositoryAsync, ChildParentRepositoryAsync>();
+            services.AddTransient<IDiagnosisTypeRepositoryAsync, DiagnosisTypeRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
-            //services.AddTransient<IAddressRepositoryAsync, AddressRepositoryAsync>();
             services.AddTransient<ICommentRepositoryAsync, CommentRepositoryAsync>();
             services.AddTransient<IFileTempRepositoryAsync, FileTempRepositoryAsync>();
             services.AddTransient<IPaymentRepositoryAsync, PaymentRepositoryAsync>();

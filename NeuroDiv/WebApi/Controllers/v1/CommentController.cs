@@ -3,6 +3,7 @@ using Application.Features.Comment.Query;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Threading.Tasks;
 
 namespace WebApi.Controllers.v1
@@ -18,7 +19,7 @@ namespace WebApi.Controllers.v1
         /// <returns></returns>
         [Authorize]
         [HttpGet("{id?}")]
-        public async Task<IActionResult> GetCommentsById(int id)
+        public async Task<IActionResult> GetCommentsById(Guid id)
         {
             return Ok(await Mediator.Send(new GetByIdQuery { commentId = id }));
         }
@@ -68,7 +69,7 @@ namespace WebApi.Controllers.v1
 
         [Authorize]
         [HttpDelete("{Id}")]
-        public async Task<IActionResult> DeleteCommentById(int Id)
+        public async Task<IActionResult> DeleteCommentById(Guid Id)
         {
             return Ok(await Mediator.Send(new DeleteOrganizationRolesCommand { commentId = Id }));
         }

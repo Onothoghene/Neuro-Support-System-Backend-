@@ -5,12 +5,13 @@ using MediatR;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
+using System;
 
 namespace Application.Features.Comment.Command
 {
     public class DeleteOrganizationRolesCommand : IRequest<Response<bool>>
     {
-        public int commentId { get; set; }
+        public Guid commentId { get; set; }
 
         public class DeleteCommentCommandHandler : IRequestHandler<DeleteOrganizationRolesCommand, Response<bool>>
         {

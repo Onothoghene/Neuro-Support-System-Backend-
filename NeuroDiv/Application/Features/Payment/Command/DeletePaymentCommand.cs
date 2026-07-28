@@ -5,12 +5,13 @@ using MediatR;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
+using System;
 
 namespace Application.Features.Payment.Command
 {
     public class DeletePaymentCommand : IRequest<Response<bool>>
     {
-        public int paymentId { get; set; }
+        public Guid paymentId { get; set; }
 
         public class DeletePaymentCommandHandler : IRequestHandler<DeletePaymentCommand, Response<bool>>
         {

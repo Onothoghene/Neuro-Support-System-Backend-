@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
+using System;
 
 namespace Application.Features.OrganizationUserRoles.Query
 {
     public class GetOrganizationUserRolesByIdQuery : IRequest<Response<CommentVM>>
     {
-        public int commentId { get; set; }
+        public Guid Id { get; set; }
 
         public class GetOrganizationUserRolesByIdQueryHandler : IRequestHandler<GetOrganizationUserRolesByIdQuery, Response<CommentVM>>
         {
@@ -25,7 +26,7 @@ namespace Application.Features.OrganizationUserRoles.Query
             }
             public async Task<Response<CommentVM>> Handle(GetOrganizationUserRolesByIdQuery query, CancellationToken cancellationToken)
             {
-                var response = await _commentRepository.GetByIdAsync(query.commentId);
+                var response = await _commentRepository.GetByIdAsync(query.Id);
                 if (response == null) throw new ApiException($"The requested comment could not be found.");
                 return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
             }

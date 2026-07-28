@@ -10,12 +10,13 @@ using Application.DTOs.OrganizationUsersInvite;
 using Application.DTOs.OrganizationUserRoles;
 using Application.DTOs.OrganizationUsers;
 using Application.DTOs.Organizations;
+using System;
 
 namespace Application.Features.Comment.Query
 {
     public class GetByIdQuery : IRequest<Response<CommentVM>>
     {
-        public int commentId { get; set; }
+        public Guid commentId { get; set; }
 
         public class GetCommentByIdQueryHandler : IRequestHandler<GetByIdQuery, Response<CommentVM>>
         {

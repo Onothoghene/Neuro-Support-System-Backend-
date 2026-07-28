@@ -7,12 +7,13 @@ using System.Threading;
 using Application.Interfaces.Repositories;
 using Application.DTOs.Comments;
 using Application.DTOs.OrganizationUsersInvite;
+using System;
 
 namespace Application.Features.OrganizationUsersInvite.Query
 {
     public class GetOrganizationUsersInviteByIdQuery : IRequest<Response<OrganizationUserInviteVM>>
     {
-        public int Id { get; set; }
+        public Guid Id { get; set; }
 
         public class GetOrganizationUsersInviteByIdQueryHandler : IRequestHandler<GetOrganizationUsersInviteByIdQuery, Response<OrganizationUserInviteVM>>
         {

@@ -7,12 +7,13 @@ using System.Threading;
 using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
+using System;
 
 namespace Application.Features.Comment.Command
 {
     public class AddOrUpdatePaymentCommand : IRequest<Response<bool>>
     {
-        public int? Id { get; set; }
+        public Guid? Id { get; set; }
         public int OrderId { get; set; }
         public decimal AmountPaid { get; set; }
 
@@ -37,7 +38,7 @@ namespace Application.Features.Comment.Command
                     var userId = _user.UserId;
 
                     //Update functionality
-                    if (command.Id.HasValue && command.Id.Value > 0)
+                    if (command.Id.HasValue && command.Id.Value != Guid.Empty)
                     {
                         var payment = await _paymentRepository.GetByIdAsync(command.Id.Value);
                         if (payment == null)

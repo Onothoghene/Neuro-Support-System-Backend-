@@ -1079,7 +1079,7 @@ namespace Infrastructure.Identity.Services
             return rolename;
         }
 
-        public async Task<string> GetUserRoleById(int userId)
+        public async Task<string> GetUserRoleById(Guid userId)
         {
             var userprofile = await _userProfile.GetByIdAsync(userId);
             var user = await _userManager.FindByEmailAsync(userprofile.Email);

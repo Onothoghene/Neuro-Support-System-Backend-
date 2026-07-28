@@ -5,12 +5,13 @@ using MediatR;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
+using System;
 
 namespace Application.Features.Organizations.Command
 {
     public class DeleteOrganizationsCommand : IRequest<Response<bool>>
     {
-        public int commentId { get; set; }
+        public Guid orgId { get; set; }
 
         public class DeleteOrganizationsCommandHandler : IRequestHandler<DeleteOrganizationsCommand, Response<bool>>
         {
@@ -26,7 +27,7 @@ namespace Application.Features.Organizations.Command
             {
                 using (var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                 {
-                    var data = await _commentRepository.GetByIdAsync(command.commentId) ?? 
+                    var data = await _commentRepository.GetByIdAsync(command.orgId) ?? 
                                                             throw new ApiException($"The requested comment could not be found.");
 
                     //data.IsDeleted = true;

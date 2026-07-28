@@ -44,7 +44,7 @@ namespace Domain.Entities
         public Guid? OrganizationId { get; set; }
 
         /// <summary>The therapist who created/added this child.</summary>
-        public Guid CreatedByTherapistId { get; set; }
+        public Guid? CreatedByTherapistId { get; set; }
 
         public bool IsActive { get; set; } = true;
 

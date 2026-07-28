@@ -49,6 +49,7 @@ namespace WebApi
                     await Infrastructure.Identity.Seeds.DefaultBasicUser.SeedAsync(userManager, roleManager);
 
                     await DefaultUserProfile.SeedAsync(appDbContext);
+                    await DefaultClinicalData.SeedAsync(appDbContext);
 
                     //await DefaultAdminUserProfile.SeedAsync(appDbContext);
 

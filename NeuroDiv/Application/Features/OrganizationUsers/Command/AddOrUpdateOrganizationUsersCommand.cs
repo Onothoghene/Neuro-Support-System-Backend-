@@ -7,12 +7,13 @@ using System.Threading;
 using System.Transactions;
 using System.Threading.Tasks;
 using Application.Exceptions;
+using System;
 
 namespace Application.Features.OrganizationUsers.Command
 {
     public class AddOrUpdateOrganizationUsersCommand : IRequest<Response<bool>>
     {
-        public int? Id { get; set; }
+        public Guid? Id { get; set; }
         public int FoodId { get; set; }
         public string CommentText { get; set; }
         public double Rating { get; set; }
@@ -38,7 +39,7 @@ namespace Application.Features.OrganizationUsers.Command
                     var userId = _user.UserId;
 
                     //Update functionality
-                    if (command.Id.HasValue && command.Id.Value > 0)
+                    if (command.Id.HasValue && command.Id.Value != Guid.Empty)
                     {
                         var comment = await _commentRepository.GetByIdAsync(command.Id.Value);
                         if (comment == null)

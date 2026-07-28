@@ -5,12 +5,13 @@ using MediatR;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Transactions;
+using System;
 
 namespace Application.Features.OrganizationRoles.Command
 {
     public class DeleteOrganizationRolesCommand : IRequest<Response<bool>>
     {
-        public int OrganizationRoleId { get; set; }
+        public Guid OrganizationRoleId { get; set; }
 
         public class DeleteOrganizationRolesCommandHandler : IRequestHandler<DeleteOrganizationRolesCommand, Response<bool>>
         {
@@ -41,4 +42,3 @@ namespace Application.Features.OrganizationRoles.Command
         }
     }
 }
-
