@@ -44,9 +44,8 @@ namespace Application.Features.Organizations.Query
                 //    throw new ApiException($"You do not have permission to view this organization.");
                 //}
 
-
-                var response = await _organizationsRepository.GetByIdAsync(query.OrganizationId);
-                if (response == null) throw new ApiException($"The requested organization could not be found.");
+                var response = await _organizationsRepository.GetByIdAsync(query.OrganizationId) ??
+                               throw new ApiException($"The requested organization could not be found.");
                 return new Response<OrganizationsVM>(_mapper.Map<OrganizationsVM>(response), "successful");
             }
         }

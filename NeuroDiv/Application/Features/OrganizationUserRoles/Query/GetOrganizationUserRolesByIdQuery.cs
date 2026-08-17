@@ -1,34 +1,30 @@
-﻿using Application.Exceptions;
+﻿using Application.DTOs.Comments;
+using Application.DTOs.Users;
+using Application.Exceptions;
+using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
 using MediatR;
-using System.Threading.Tasks;
-using System.Threading;
-using Application.Interfaces.Repositories;
-using Application.DTOs.Comments;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Application.Features.OrganizationUserRoles.Query
 {
-    public class GetOrganizationUserRolesByIdQuery : IRequest<Response<CommentVM>>
+    public class GetOrganizationUserRolesByIdQuery : IRequest<Response<UserDetailsVM>>
     {
-        public Guid Id { get; set; }
+        public Guid roleId { get; set; }
 
-        public class GetOrganizationUserRolesByIdQueryHandler : IRequestHandler<GetOrganizationUserRolesByIdQuery, Response<CommentVM>>
+        public class GetOrganizationUserRolesByIdQueryHandler(IOrganizationUserRolesRepositoryAsync organizationUserRoles, IMapper mapper) : IRequestHandler<GetOrganizationUserRolesByIdQuery, Response<UserDetailsVM>>
         {
-            private readonly ICommentRepositoryAsync _commentRepository;
-            private readonly IMapper _mapper;
+            private readonly IOrganizationUserRolesRepositoryAsync _organizationUserRoles = organizationUserRoles;
+            private readonly IMapper _mapper = mapper;
 
-            public GetOrganizationUserRolesByIdQueryHandler(ICommentRepositoryAsync commentRepository, IMapper mapper)
+            public async Task<Response<UserDetailsVM>> Handle(GetOrganizationUserRolesByIdQuery query, CancellationToken cancellationToken)
             {
-                _commentRepository = commentRepository;
-                _mapper = mapper;
-            }
-            public async Task<Response<CommentVM>> Handle(GetOrganizationUserRolesByIdQuery query, CancellationToken cancellationToken)
-            {
-                var response = await _commentRepository.GetByIdAsync(query.Id);
-                if (response == null) throw new ApiException($"The requested comment could not be found.");
-                return new Response<CommentVM>(_mapper.Map<CommentVM>(response), "successful");
+                var response = await _organizationUserRoles.GetByIdAsync(query.roleId) ?? 
+                               throw new ApiException($"The requested role could not be found.");
+                return new Response<UserDetailsVM>(_mapper.Map<UserDetailsVM>(response), "successful");
             }
         }
     }

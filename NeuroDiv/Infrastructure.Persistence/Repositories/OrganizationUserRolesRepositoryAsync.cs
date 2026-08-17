@@ -22,19 +22,21 @@ namespace Infrastructure.Persistence.Repositories
 
         public async Task<List<OrganizationUserRoles>> GetUserRolesInOrganization(Guid userId, Guid organizationId)
         {
-            return await _organizationUserRoles
-                .Where(x => x.UserId == userId && x.OrganizationId == organizationId)
-                .Include(x => x.OrganizationRoles)
-                .ToListAsync();
-        }
-
-        public async Task<List<OrganizationUserRoles>> GetById(Guid Id)
-        {
-            return await _organizationUserRoles.Where(x => x.UserId == Id)
+            return await _organizationUserRoles.Where(x => x.UserId == userId && x.OrganizationId == organizationId)
                                                .Include(x => x.OrganizationRoles)
                                                .ToListAsync();
         }
 
+        public async Task<List<UserProfile>> GetUserRolesInOrganization(Guid roleId, Guid userId, Guid organizationId)
+        {
+            return await _organizationUserRoles.Where(x => x.UserId == userId && x.OrganizationId == organizationId 
+                                                      && x.OrganizationRoleId == roleId)
+                                               .Include(x => x.OrganizationRoles)
+                                               .Select(x => x.User)
+                                               .ToListAsync();
+        }
+
+        
         public async Task<List<OrganizationUserRoles>> GetByOrganizationId(Guid organizationId)
         {
             return await _organizationUserRoles.Where(x => x.OrganizationId == organizationId)
