@@ -51,6 +51,10 @@ namespace Infrastructure.Persistence
             services.AddTransient<ITherapyGoalRepositoryAsync, TherapyGoalRepositoryAsync>();
             services.AddTransient<IChildParentRepositoryAsync, ChildParentRepositoryAsync>();
             services.AddTransient<IDiagnosisTypeRepositoryAsync, DiagnosisTypeRepositoryAsync>();
+            services.AddTransient<ISessionDurationRepositoryAsync, SessionDurationRepositoryAsync>();
+            services.AddTransient<ISessionRepositoryAsync, SessionRepositoryAsync>();
+            services.AddTransient<IChildSessionRecordRepositoryAsync, ChildSessionRecordRepositoryAsync>();
+            services.AddTransient<IGoalProgressLogRepositoryAsync, GoalProgressLogRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             services.AddTransient<ICommentRepositoryAsync, CommentRepositoryAsync>();

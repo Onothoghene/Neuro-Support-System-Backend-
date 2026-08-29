@@ -1,10 +1,5 @@
 ﻿using Application.Features.ChildProfile.Command;
 using Application.Features.ChildProfile.Query;
-using Application.Features.Comment.Command;
-using Application.Features.Comment.Query;
-using Application.Features.ParentProfile.Command;
-using Application.Features.TherapistAssignment.Command;
-using Application.Features.TherapyGoal.Command;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +9,7 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers.v1
 {
     [ApiVersion("1.0")]
+    [Authorize]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class ChildProfileController : BaseApiController
     {

@@ -34,6 +34,10 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<ChildTherapistAssignment> ChildTherapistAssignment { get; set; }
         public DbSet<GoalCategory> GoalCategory { get; set; }
         public DbSet<TherapyGoal> TherapyGoal { get; set; }
+        public DbSet<SessionDuration> SessionDuration { get; set; }
+        public DbSet<Session> Session { get; set; }
+        public DbSet<ChildSessionRecord> ChildSessionRecord { get; set; }
+        public DbSet<GoalProgressLog> GoalProgressLog { get; set; }
 
 
         public DbSet<Comments> Comments { get; set; }

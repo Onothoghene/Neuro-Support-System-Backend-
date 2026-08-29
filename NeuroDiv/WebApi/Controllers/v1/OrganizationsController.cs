@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace WebApi.Controllers.v1
 {
     [ApiVersion("1.0")]
+    [Authorize]
     [Route("api/v{version:apiVersion}/[controller]")]
     public class OrganizationsController : BaseApiController
     {
@@ -17,7 +18,6 @@ namespace WebApi.Controllers.v1
         /// </summary>
         /// <param name="organizationId"></param>
         /// <returns></returns>
-        [Authorize]
         [HttpGet("{organizationId?}")]
         public async Task<IActionResult> GetOrganization(Guid organizationId)
         {
@@ -29,7 +29,6 @@ namespace WebApi.Controllers.v1
         /// </summary>
         /// <param name="command"></param>
         /// <returns></returns>
-        [Authorize]
         [HttpPut("")]
         public async Task<IActionResult> UpdateOrganization(UpdateOrganizationsCommand command)
         {

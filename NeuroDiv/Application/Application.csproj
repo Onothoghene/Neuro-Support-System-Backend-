@@ -6,6 +6,12 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Compile Remove="Features\Settings\Query\**" />
+	  <EmbeddedResource Remove="Features\Settings\Query\**" />
+	  <None Remove="Features\Settings\Query\**" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="16.1.1" />
 		<PackageReference Include="FluentValidation" Version="12.1.1" />
 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
@@ -20,10 +26,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Domain\Domain.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Folder Include="Features\Settings\Query\" />
 	</ItemGroup>
 	
 </Project>
