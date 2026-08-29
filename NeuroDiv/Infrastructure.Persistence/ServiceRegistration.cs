@@ -55,6 +55,9 @@ namespace Infrastructure.Persistence
             services.AddTransient<ISessionRepositoryAsync, SessionRepositoryAsync>();
             services.AddTransient<IChildSessionRecordRepositoryAsync, ChildSessionRecordRepositoryAsync>();
             services.AddTransient<IGoalProgressLogRepositoryAsync, GoalProgressLogRepositoryAsync>();
+            services.AddTransient<ISessionCancellationRepositoryAsync, SessionCancellationRepositoryAsync>();
+            services.AddTransient<ISessionNoShowRepositoryAsync, SessionNoShowRepositoryAsync>();
+            services.AddTransient<ISessionRecurrenceRepositoryAsync, SessionRecurrenceRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             services.AddTransient<ICommentRepositoryAsync, CommentRepositoryAsync>();

@@ -24,6 +24,9 @@ namespace Infrastructure.Persistence.Repositories
         {
             return await _session.Include(s => s.Therapist)
                                  .Include(s => s.SessionDuration)
+                                 .Include(s => s.Cancellation)
+                                 .Include(s => s.NoShow)
+                                 .Include(s => s.Recurrence)
                                  .Include(s => s.ChildSessionRecords)
                                  .ThenInclude(r => r.ChildProfile)
                                  .Include(s => s.ChildSessionRecords)
@@ -33,16 +36,21 @@ namespace Infrastructure.Persistence.Repositories
                                  .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
 
+        public async Task<Session?> GetByIdLite(Guid id)
+        {
+            return await _session.FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
+        }
+
         public async Task<List<Session>> GetAllAsync(Guid? organizationId, Guid? therapistId, Guid? childProfileId,
                                                     SessionStatus? status, SessionType? type,
                                                     DateTime? fromDate, DateTime? toDate)
         {
-            var query = _session.Where(s => !s.IsDeleted)
-                                .Include(s => s.Therapist)
-                                .Include(s => s.SessionDuration)
-                                .Include(s => s.ChildSessionRecords)
-                                .ThenInclude(r => r.ChildProfile)
-                                .AsQueryable();
+            var query = _session.Include(s => s.Therapist)
+                                 .Include(s => s.SessionDuration)
+                                 .Include(s => s.ChildSessionRecords)
+                                 .ThenInclude(r => r.ChildProfile)
+                                 .Where(s => !s.IsDeleted)
+                                 .AsQueryable();
 
             if (organizationId.HasValue)
                 query = query.Where(s => s.OrganizationId == organizationId.Value);
@@ -52,7 +60,7 @@ namespace Infrastructure.Persistence.Repositories
 
             if (childProfileId.HasValue)
                 query = query.Where(s => s.ChildSessionRecords
-                    .Any(r => r.ChildProfileId == childProfileId.Value));
+                             .Any(r => r.ChildProfileId == childProfileId.Value));
 
             if (status.HasValue)
                 query = query.Where(s => s.Status == status.Value);
@@ -66,16 +74,16 @@ namespace Infrastructure.Persistence.Repositories
             if (toDate.HasValue)
                 query = query.Where(s => s.ScheduledDate <= toDate.Value);
 
-            return await query
-                .OrderBy(s => s.ScheduledDate)
-                .ThenBy(s => s.StartTime)
-                .ToListAsync();
+            return await query.OrderBy(s => s.ScheduledDate)
+                              .ThenBy(s => s.StartTime)
+                              .ToListAsync();
         }
 
         public async Task<List<Session>> GetBySeriesIdAsync(Guid seriesId)
         {
-            return await _session.Where(s => s.RecurringSeriesId == seriesId && !s.IsDeleted
-                                        && s.ScheduledDate >= DateTime.UtcNow.Date)
+            return await _session.Include(s => s.Recurrence)
+                                 .Where(s => s.Recurrence != null && s.Recurrence.SeriesId == seriesId
+                                        && !s.IsDeleted && s.ScheduledDate >= DateTime.UtcNow.Date)
                                  .OrderBy(s => s.ScheduledDate)
                                  .ToListAsync();
         }

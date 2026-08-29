@@ -38,6 +38,9 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<Session> Session { get; set; }
         public DbSet<ChildSessionRecord> ChildSessionRecord { get; set; }
         public DbSet<GoalProgressLog> GoalProgressLog { get; set; }
+        public DbSet<SessionCancellation> SessionCancellation { get; set; }
+        public DbSet<SessionNoShow> SessionNoShow { get; set; }
+        public DbSet<SessionRecurrence> SessionRecurrence { get; set; }
 
 
         public DbSet<Comments> Comments { get; set; }

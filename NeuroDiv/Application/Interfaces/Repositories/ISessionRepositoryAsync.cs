@@ -9,6 +9,7 @@ namespace Application.Interfaces.Repositories
     public interface ISessionRepositoryAsync : IGenericRepositoryAsync<Session>
     {
         Task<Session?> GetById(Guid id);
+        Task<Session?> GetByIdLite(Guid id)
         Task<List<Session>> GetAllAsync(Guid? organizationId, Guid? therapistId, Guid? childProfileId,
                                         SessionStatus? status, SessionType? type,
                                         DateTime? fromDate,DateTime? toDate);
