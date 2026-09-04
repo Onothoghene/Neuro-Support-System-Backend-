@@ -52,7 +52,7 @@ namespace Infrastructure.Persistence
             services.AddTransient<IChildParentRepositoryAsync, ChildParentRepositoryAsync>();
             services.AddTransient<IDiagnosisTypeRepositoryAsync, DiagnosisTypeRepositoryAsync>();
             services.AddTransient<ISessionDurationRepositoryAsync, SessionDurationRepositoryAsync>();
-            services.AddTransient<ISessionRepositoryAsync, SessionRepositoryAsync>();
+            services.AddTransient<ISessionClassRepositoryAsync, SessionRepositoryAsync>();
             services.AddTransient<IChildSessionRecordRepositoryAsync, ChildSessionRecordRepositoryAsync>();
             services.AddTransient<IGoalProgressLogRepositoryAsync, GoalProgressLogRepositoryAsync>();
             services.AddTransient<ISessionCancellationRepositoryAsync, SessionCancellationRepositoryAsync>();

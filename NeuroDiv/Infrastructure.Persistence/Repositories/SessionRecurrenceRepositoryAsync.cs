@@ -10,16 +10,16 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories
 {
-    public class SessionRecurrenceRepositoryAsync : GenericRepositoryAsync<SessionRecurrence>, ISessionRecurrenceRepositoryAsync
+    public class SessionRecurrenceRepositoryAsync : GenericRepositoryAsync<SessionOccurrence>, ISessionRecurrenceRepositoryAsync
     {
-        private readonly DbSet<SessionRecurrence> _SessionRecurrence;
+        private readonly DbSet<SessionOccurrence> _SessionRecurrence;
 
         public SessionRecurrenceRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
         {
-            _SessionRecurrence = dbContext.Set<SessionRecurrence>();
+            _SessionRecurrence = dbContext.Set<SessionOccurrence>();
         }
 
-        public Task<List<SessionRecurrence>> GetBySeriesIdAsync(Guid seriesId)
+        public Task<List<SessionOccurrence>> GetBySeriesIdAsync(Guid seriesId)
         {
             return _SessionRecurrence.Where(r => r.SeriesId == seriesId && !r.IsDeleted)
                                      .ToListAsync();

@@ -1,25 +1,17 @@
 using Application;
 using Application.Interfaces;
 using Asp.Versioning.ApiExplorer;
-
-//using crypto;
 using Infrastructure.Identity;
 using Infrastructure.Persistence;
 using Infrastructure.Shared;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using WebApi.Extensions;
 using WebApi.Services;
 
@@ -106,6 +98,9 @@ namespace WebApi
             app.UseErrorHandlingMiddleware();
             app.UseHealthChecks();
             app.UseHangfireDashboard();
+
+
+
 
             app.UseEndpoints(endpoints =>
             {

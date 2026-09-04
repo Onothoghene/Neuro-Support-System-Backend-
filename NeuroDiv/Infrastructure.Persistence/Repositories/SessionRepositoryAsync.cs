@@ -11,16 +11,16 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories
 {
-    public class SessionRepositoryAsync : GenericRepositoryAsync<Session>, ISessionRepositoryAsync
+    public class SessionRepositoryAsync : GenericRepositoryAsync<SessionClass>, ISessionClassRepositoryAsync
     {
-        private readonly DbSet<Session> _session;
+        private readonly DbSet<SessionClass> _session;
 
         public SessionRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
         {
-            _session = dbContext.Set<Session>();
+            _session = dbContext.Set<SessionClass>();
         }
 
-        public async Task<Session?> GetById(Guid id)
+        public async Task<SessionClass?> GetById(Guid id)
         {
             return await _session.Include(s => s.Therapist)
                                  .Include(s => s.SessionDuration)
@@ -36,12 +36,12 @@ namespace Infrastructure.Persistence.Repositories
                                  .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
 
-        public async Task<Session?> GetByIdLite(Guid id)
+        public async Task<SessionClass?> GetByIdLite(Guid id)
         {
             return await _session.FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted);
         }
 
-        public async Task<List<Session>> GetAllAsync(Guid? organizationId, Guid? therapistId, Guid? childProfileId,
+        public async Task<List<SessionClass>> GetAllAsync(Guid? organizationId, Guid? therapistId, Guid? childProfileId,
                                                     SessionStatus? status, SessionType? type,
                                                     DateTime? fromDate, DateTime? toDate)
         {
@@ -79,7 +79,7 @@ namespace Infrastructure.Persistence.Repositories
                               .ToListAsync();
         }
 
-        public async Task<List<Session>> GetBySeriesIdAsync(Guid seriesId)
+        public async Task<List<SessionClass>> GetBySeriesIdAsync(Guid seriesId)
         {
             return await _session.Include(s => s.Recurrence)
                                  .Where(s => s.Recurrence != null && s.Recurrence.SeriesId == seriesId

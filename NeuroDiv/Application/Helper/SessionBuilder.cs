@@ -10,10 +10,10 @@ namespace Application.Helper
 {
     public static class SessionBuilder
     {
-        public static Session BuildSession(CreateSessionCommand command, Guid therapistId, Guid? seriesId,
+        public static SessionClass BuildSession(CreateSessionCommand command, Guid therapistId, Guid? seriesId,
                                             List<ChildSessionRecord> childRecords, DateTime? overrideDate = null)
         {
-            return new Session
+            return new SessionClass
             {
                 Title = command.Title,
                 Type = command.Type,
@@ -32,10 +32,10 @@ namespace Application.Helper
             };
         }
 
-        public static List<Session> GenerateRecurringSessions(CreateSessionCommand command, Guid therapistId,
+        public static List<SessionClass> GenerateRecurringSessions(CreateSessionCommand command, Guid therapistId,
                                                                Guid seriesId, List<ChildSessionRecord> childRecords)
         {
-            var sessions = new List<Session>();
+            var sessions = new List<SessionClass>();
             var current = command.ScheduledDate;
             var endDate = command.RecurrenceEndDate ?? command.ScheduledDate.AddMonths(3);
 
@@ -63,7 +63,7 @@ namespace Application.Helper
             return sessions;
         }
 
-        public static void ApplyCancellation(Session session, CancelSessionCommand command, Guid loggedInUserId)
+        public static void ApplyCancellation(SessionClass session, CancelSessionCommand command, Guid loggedInUserId)
         {
             session.Status = SessionStatus.Cancelled;
             session.CancellationReason = command.Reason;

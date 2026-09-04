@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Application.Interfaces.Repositories
 {
-    public interface ISessionRecurrenceRepositoryAsync : IGenericRepositoryAsync<SessionRecurrence>
+    public interface ISessionRecurrenceRepositoryAsync : IGenericRepositoryAsync<SessionOccurrence>
     {
-        Task<List<SessionRecurrence>> GetBySeriesIdAsync(Guid seriesId);
+        Task<List<SessionOccurrence>> GetBySeriesIdAsync(Guid seriesId);
     }
 }

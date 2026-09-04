@@ -23,10 +23,10 @@ namespace Application.Features.Session.Command
 
         public class UpdateSessionCommandHandler : IRequestHandler<UpdateSessionCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser;
 
-            public UpdateSessionCommandHandler(ISessionRepositoryAsync sessionRepository,
+            public UpdateSessionCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                                IAuthenticatedUserService authenticatedUser)
             {
                 _sessionRepository = sessionRepository;

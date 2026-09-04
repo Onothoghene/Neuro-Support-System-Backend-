@@ -9,7 +9,7 @@ namespace Application.Mappings
         public SessionProfile()
         {
             // Session → SessionVM
-            CreateMap<Session, SessionVM>()
+            CreateMap<SessionClass, SessionVM>()
                 .ForMember(dest => dest.Type,
                     opt => opt.MapFrom(src => src.Type.ToString()))
                 .ForMember(dest => dest.Status,
@@ -34,7 +34,7 @@ namespace Application.Mappings
                     opt => opt.MapFrom(src => src.ChildSessionRecords));
 
             // Session → SessionSummaryVM
-            CreateMap<Session, SessionSummaryVM>()
+            CreateMap<SessionClass, SessionSummaryVM>()
                 .ForMember(dest => dest.Type,
                     opt => opt.MapFrom(src => src.Type.ToString()))
                 .ForMember(dest => dest.Status,

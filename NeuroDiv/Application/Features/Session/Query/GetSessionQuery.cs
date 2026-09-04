@@ -15,12 +15,12 @@ namespace Application.Features.Session.Query
     {
         public Guid Id { get; set; }
 
-        public class GetSessionQueryHandler(ISessionRepositoryAsync sessionRepository,
+        public class GetSessionQueryHandler(ISessionClassRepositoryAsync sessionRepository,
                                            IAuthenticatedUserService authenticatedUser,
                                            IMapper mapper) 
               : IRequestHandler<GetSessionQuery, Response<SessionVM>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
             private readonly IMapper _mapper = mapper;
 

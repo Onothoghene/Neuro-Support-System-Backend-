@@ -23,13 +23,13 @@ namespace Application.Features.Session.Command
         public ChildEngagement? Engagement { get; set; }
         public List<GoalProgressLogRequest> GoalProgressLogs { get; set; } = [];
 
-        public class AddOrUpdateChildSessionRecordCommandHandler(ISessionRepositoryAsync sessionRepository,
+        public class AddOrUpdateChildSessionRecordCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                                                  IAuthenticatedUserService authenticatedUser,
                                                                  IChildSessionRecordRepositoryAsync recordRepository,
                                                                  ITherapyGoalRepositoryAsync goalRepository) 
               : IRequestHandler<AddOrUpdateChildSessionRecordCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
             private readonly IChildSessionRecordRepositoryAsync _recordRepository = recordRepository;
             private readonly ITherapyGoalRepositoryAsync _goalRepository = goalRepository;

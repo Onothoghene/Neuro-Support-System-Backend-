@@ -16,11 +16,11 @@ namespace Application.Features.Session.Command
         public Guid Id { get; set; }
         public string? GeneralNotes { get; set; }
 
-        public class CompleteSessionCommandHandler(ISessionRepositoryAsync sessionRepository,
+        public class CompleteSessionCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                            IAuthenticatedUserService authenticatedUser) 
               : IRequestHandler<CompleteSessionCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
 
             public async Task<Response<bool>> Handle(CompleteSessionCommand command, CancellationToken cancellationToken)

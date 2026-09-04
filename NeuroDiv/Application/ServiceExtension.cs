@@ -7,10 +7,10 @@ using Hangfire.InMemory;
 using Hangfire.SqlServer;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Net;
 using System.Reflection;
 
 namespace Application
@@ -19,7 +19,7 @@ namespace Application
     {
         public static void AddApplicationLayer(this IServiceCollection services, IConfiguration configuration)
         {
-            services.AddAutoMapper(cfg => { } ,Assembly.GetExecutingAssembly());
+            services.AddAutoMapper(cfg => { }, Assembly.GetExecutingAssembly());
             services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
             services.AddMediatR(ser => ser.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
             //services.AddMediatR(Assembly.GetExecutingAssembly());
@@ -38,14 +38,23 @@ namespace Application
             //    TransactionTimeout = TimeSpan.FromMinutes(1),
             //};
 
-           // var sqlStorage = new SqlServerStorage(configuration.GetConnectionString("DefaultConnection"), options);
+            // var sqlStorage = new SqlServerStorage(configuration.GetConnectionString("DefaultConnection"), options);
             JobStorage.Current = new InMemoryStorage();
 
-            services.AddHangfire(x =>
-            x.UseInMemoryStorage()
-            .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
-            .UseSimpleAssemblyNameTypeSerializer()
-            .UseRecommendedSerializerSettings());
+            services.AddHangfire(config =>
+            config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+                 // .UseInMemoryStorage()
+                  .UseSimpleAssemblyNameTypeSerializer()
+                  .UseRecommendedSerializerSettings()
+                  .UseSqlServerStorage(configuration.GetConnectionString("DefaultConnection"),
+                    new SqlServerStorageOptions
+                    {
+                        CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                        SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                        QueuePollInterval = TimeSpan.Zero,
+                        UseRecommendedIsolationLevel = true,
+                        DisableGlobalLocks = true
+                    }));
 
             services.AddHangfireServer();
 
@@ -59,14 +68,25 @@ namespace Application
         public static void UseHangfireDashboard(this IApplicationBuilder app)
         {
             app.UseHangfireDashboard("/mydashboard");
+
+            //app.UseHangfireDashboard("/mydashboard", new DashboardOptions
+            //{
+            //    Authorization = new[] { new HangfireAuthorizationFilter() }
+            //});
+
+            // Restrict dashboard to SuperAdmin only in production
+            //
         }
 
         public static void AddBackgroundJobs(this IServiceCollection services)
         {
             //cron job expressions
 
-        //    RecurringJob.AddOrUpdate<IOrderCompletionJobService>("Order Completion", service => service.ProcessPendingOrders(),
-         //   "*/15 * * * *"); // Runs every 15 minutes
+            //    RecurringJob.AddOrUpdate<IOrderCompletionJobService>("Order Completion", service => service.ProcessPendingOrders(),
+            //   "*/15 * * * *"); // Runs every 15 minutes
+
+            RecurringJob.AddOrUpdate<ISessionOccurrenceGeneratorService>("generate-session-occurrences",
+            service => service.GenerateUpcomingOccurrencesAsync(),Cron.Daily); // runs every day at midnight
 
         }
     }

@@ -17,11 +17,11 @@ namespace Application.Features.Session.Command
         public NoShowType NoShowType { get; set; }
         public string? Notes { get; set; }
 
-        public class MarkNoShowCommandHandler(ISessionRepositoryAsync sessionRepository,
+        public class MarkNoShowCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                            IAuthenticatedUserService authenticatedUser) 
               : IRequestHandler<MarkNoShowCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
 
             public async Task<Response<bool>> Handle(MarkNoShowCommand command, CancellationToken cancellationToken)

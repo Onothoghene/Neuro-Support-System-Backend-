@@ -15,11 +15,11 @@ namespace Application.Features.Session.Command
     {
         public Guid Id { get; set; }
 
-        public class StartSessionCommandHandler(ISessionRepositoryAsync sessionRepository,
+        public class StartSessionCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                            IAuthenticatedUserService authenticatedUser) 
               : IRequestHandler<StartSessionCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
 
             public async Task<Response<bool>> Handle(StartSessionCommand command, CancellationToken cancellationToken)

@@ -22,12 +22,12 @@ namespace Application.Features.Session.Query
         public DateTime? FromDate { get; set; }
         public DateTime? ToDate { get; set; }
 
-        public class GetSessionsQueryHandler(ISessionRepositoryAsync sessionRepository,
+        public class GetSessionsQueryHandler(ISessionClassRepositoryAsync sessionRepository,
                                            IAuthenticatedUserService authenticatedUser,
                                            IMapper mapper) 
               : IRequestHandler<GetSessionsQuery, Response<List<SessionSummaryVM>>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
             private readonly IMapper _mapper = mapper;
 

@@ -31,10 +31,10 @@ namespace Application.Features.Session.Command
 
         public class CreateSessionCommandHandler : IRequestHandler<CreateSessionCommand, Response<Guid>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser;
 
-            public CreateSessionCommandHandler(ISessionRepositoryAsync sessionRepository,
+            public CreateSessionCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                                IAuthenticatedUserService authenticatedUser)
             {
                 _sessionRepository = sessionRepository;

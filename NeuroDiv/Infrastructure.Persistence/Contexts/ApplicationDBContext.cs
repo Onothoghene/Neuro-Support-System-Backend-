@@ -35,12 +35,13 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<GoalCategory> GoalCategory { get; set; }
         public DbSet<TherapyGoal> TherapyGoal { get; set; }
         public DbSet<SessionDuration> SessionDuration { get; set; }
-        public DbSet<Session> Session { get; set; }
+        public DbSet<SessionClass> SessionClass { get; set; }
         public DbSet<ChildSessionRecord> ChildSessionRecord { get; set; }
         public DbSet<GoalProgressLog> GoalProgressLog { get; set; }
         public DbSet<SessionCancellation> SessionCancellation { get; set; }
         public DbSet<SessionNoShow> SessionNoShow { get; set; }
         public DbSet<SessionRecurrence> SessionRecurrence { get; set; }
+        public DbSet<SessionOccurrence> SessionOccurrence { get; set; }
 
 
         public DbSet<Comments> Comments { get; set; }

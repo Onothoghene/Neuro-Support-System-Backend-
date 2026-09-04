@@ -21,10 +21,10 @@ namespace Application.Features.Session.Command
 
         public class CancelSessionCommandHandler : IRequestHandler<CancelSessionCommand, Response<bool>>
         {
-            private readonly ISessionRepositoryAsync _sessionRepository;
+            private readonly ISessionClassRepositoryAsync _sessionRepository;
             private readonly IAuthenticatedUserService _authenticatedUser;
 
-            public CancelSessionCommandHandler(ISessionRepositoryAsync sessionRepository,
+            public CancelSessionCommandHandler(ISessionClassRepositoryAsync sessionRepository,
                                                IAuthenticatedUserService authenticatedUser)
             {
                 _sessionRepository = sessionRepository;
