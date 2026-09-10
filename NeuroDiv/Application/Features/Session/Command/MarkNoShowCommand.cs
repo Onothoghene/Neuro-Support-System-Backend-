@@ -2,6 +2,7 @@
 using Application.Interfaces;
 using Application.Interfaces.Repositories;
 using Application.Wrappers;
+using Domain.Entities;
 using Domain.Enums;
 using MediatR;
 using System;
@@ -17,33 +18,40 @@ namespace Application.Features.Session.Command
         public NoShowType NoShowType { get; set; }
         public string? Notes { get; set; }
 
-        public class MarkNoShowCommandHandler(ISessionClassRepositoryAsync sessionRepository,
-                                           IAuthenticatedUserService authenticatedUser) 
+        public class MarkNoShowCommandHandler(ISessionOccurrenceRepositoryAsync occurrenceRepository,
+                                              IAuthenticatedUserService authenticatedUser,
+                                              ISessionNoShowRepositoryAsync noShowRepository)
               : IRequestHandler<MarkNoShowCommand, Response<bool>>
         {
-            private readonly ISessionClassRepositoryAsync _sessionRepository = sessionRepository;
+            private readonly ISessionOccurrenceRepositoryAsync _occurrenceRepository = occurrenceRepository;
             private readonly IAuthenticatedUserService _authenticatedUser = authenticatedUser;
+            private readonly ISessionNoShowRepositoryAsync _noShowRepository = noShowRepository;
 
             public async Task<Response<bool>> Handle(MarkNoShowCommand command, CancellationToken cancellationToken)
             {
                 using var ts = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-                var session = await _sessionRepository.GetById(command.Id) ??
-                              throw new ApiException("Session could not be found.");
+                var occurrence = await _occurrenceRepository.GetByIdWithDetailsAsync(command.Id) ??
+                                 throw new ApiException("Session occurrence could not be found.");
 
-                if (session.Status == SessionStatus.Completed)
+                if (occurrence.Status == SessionStatus.Completed)
                     throw new ApiException("Completed sessions cannot be marked as no-show.");
 
-                if (session.Status == SessionStatus.Cancelled)
+                if (occurrence.Status == SessionStatus.Cancelled)
                     throw new ApiException("Cancelled sessions cannot be marked as no-show.");
 
-                session.Status = SessionStatus.NoShow;
-                session.NoShowType = command.NoShowType;
-                session.NoShowNotes = command.Notes;
-                session.LastModified = DateTime.UtcNow;
-                session.LastModifiedBy = _authenticatedUser.UserId;
+                occurrence.Status = SessionStatus.NoShow;
+                occurrence.LastModified = DateTime.UtcNow;
+                occurrence.LastModifiedBy = _authenticatedUser.UserId;
 
-                await _sessionRepository.UpdateAsync(session);
+                await _occurrenceRepository.UpdateAsync(occurrence);
+
+                await _noShowRepository.AddAsync(new SessionNoShow
+                {
+                    SessionOccurrenceId = occurrence.Id,
+                    NoShowType = command.NoShowType,
+                    Notes = command.Notes,
+                });
 
                 ts.Complete();
 

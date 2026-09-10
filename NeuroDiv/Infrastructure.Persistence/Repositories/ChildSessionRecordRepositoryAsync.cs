@@ -17,14 +17,13 @@ namespace Infrastructure.Persistence.Repositories
             _childSessionRecord = dbContext.Set<ChildSessionRecord>();
         }
 
-        public async Task<ChildSessionRecord?> GetBySessionAndChildAsync(Guid sessionId, Guid childProfileId)
+        public async Task<ChildSessionRecord?> GetByOccurrenceAndChildAsync(Guid occurrenceId, Guid childProfileId)
         {
             return await _childSessionRecord.Include(r => r.GoalProgressLogs)
                                             .ThenInclude(g => g.TherapyGoal)
                                             .ThenInclude(t => t.GoalCategory)
-                                            .FirstOrDefaultAsync(r => r.SessionId == sessionId
-                                                                 && r.ChildProfileId == childProfileId
-                                                                 && !r.IsDeleted);
+                                            .FirstOrDefaultAsync(r => r.SessionOccurrenceId == occurrenceId
+                                            && r.ChildProfileId == childProfileId && !r.IsDeleted);
         }
 
     }

@@ -52,12 +52,14 @@ namespace Infrastructure.Persistence
             services.AddTransient<IChildParentRepositoryAsync, ChildParentRepositoryAsync>();
             services.AddTransient<IDiagnosisTypeRepositoryAsync, DiagnosisTypeRepositoryAsync>();
             services.AddTransient<ISessionDurationRepositoryAsync, SessionDurationRepositoryAsync>();
-            services.AddTransient<ISessionClassRepositoryAsync, SessionRepositoryAsync>();
+            services.AddTransient<ISessionClassRepositoryAsync, SessionClassRepositoryAsync>();
             services.AddTransient<IChildSessionRecordRepositoryAsync, ChildSessionRecordRepositoryAsync>();
             services.AddTransient<IGoalProgressLogRepositoryAsync, GoalProgressLogRepositoryAsync>();
+            services.AddTransient<ISessionOccurrenceRepositoryAsync, SessionOccurrenceRepositoryAsync>();
             services.AddTransient<ISessionCancellationRepositoryAsync, SessionCancellationRepositoryAsync>();
             services.AddTransient<ISessionNoShowRepositoryAsync, SessionNoShowRepositoryAsync>();
-            services.AddTransient<ISessionRecurrenceRepositoryAsync, SessionRecurrenceRepositoryAsync>();
+            services.AddTransient<ISessionOnlineDetailsRepositoryAsync, SessionOnlineDetailsRepositoryAsync>();
+            services.AddTransient<ISessionRecurrenceRuleRepositoryAsync, SessionRecurrenceRuleRepositoryAsync>();
 
             services.AddTransient<IContactUsRepositoryAsync, ContactUsRepositoryAsync>();
             services.AddTransient<ICommentRepositoryAsync, CommentRepositoryAsync>();

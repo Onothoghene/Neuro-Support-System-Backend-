@@ -7,11 +7,7 @@ namespace Application.DTOs.GoalProgressLog
     {
         public Guid TherapyGoalId { get; set; }
         public string? ProgressNote { get; set; }
-
-        /// <summary>1-5 rating.</summary>
         public int? ProgressRating { get; set; }
-
-        /// <summary>Optional — update goal status after this session.</summary>
         public GoalStatus? StatusUpdate { get; set; }
     }
 

@@ -14,12 +14,12 @@ namespace Infrastructure.Persistence.Seeds
             {
                 var durations = new List<SessionDuration>
                 {
-                    new() { Label = "30 minutes",  Minutes = 30  },
-                    new() { Label = "45 minutes",  Minutes = 45  },
-                    new() { Label = "60 minutes",  Minutes = 60  },
-                    new() { Label = "90 minutes",  Minutes = 90  },
-                    new() { Label = "120 minutes", Minutes = 120 },
-                    new() { Label = "Custom",      Minutes = 0   },
+                    new() { Label = "30 minutes",  Minutes = 30,  IsActive = true },
+                    new() { Label = "45 minutes",  Minutes = 45,  IsActive = true },
+                    new() { Label = "60 minutes",  Minutes = 60,  IsActive = true },
+                    new() { Label = "90 minutes",  Minutes = 90,  IsActive = true },
+                    new() { Label = "120 minutes", Minutes = 120, IsActive = true },
+                    new() { Label = "Custom",      Minutes = 0,   IsActive = true },
                 };
 
                 await appDbContext.SessionDuration.AddRangeAsync(durations);

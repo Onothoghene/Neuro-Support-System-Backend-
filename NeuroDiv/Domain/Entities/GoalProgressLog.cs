@@ -24,5 +24,6 @@ namespace Domain.Entities
         // Navigation
         public ChildSessionRecord ChildSessionRecord { get; set; }
         public TherapyGoal TherapyGoal { get; set; }
+
     }
 }

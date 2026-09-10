@@ -1,6 +1,7 @@
 ﻿using Application.DTOs.File;
 using Application.Exceptions;
 using Application.Interfaces;
+using Application.Interfaces.Repositories;
 using Application.Wrappers;
 using AutoMapper;
 using MediatR;

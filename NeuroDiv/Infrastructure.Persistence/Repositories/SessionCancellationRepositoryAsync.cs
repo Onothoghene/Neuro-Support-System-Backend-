@@ -1,13 +1,8 @@
 ﻿using Application.Interfaces.Repositories;
 using Domain.Entities;
-using Domain.Enums;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories
 {

@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Application.Interfaces
+namespace Application.Interfaces.Repositories
 {
     public interface ITherapistSpecializationRepositoryAsync : IGenericRepositoryAsync<TherapistSpecialization>
     {

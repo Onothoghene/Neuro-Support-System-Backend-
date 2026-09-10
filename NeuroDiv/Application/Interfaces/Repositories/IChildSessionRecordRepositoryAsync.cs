@@ -6,6 +6,6 @@ namespace Application.Interfaces.Repositories
 {
     public interface IChildSessionRecordRepositoryAsync : IGenericRepositoryAsync<ChildSessionRecord>
     {
-        Task<ChildSessionRecord?> GetBySessionAndChildAsync(Guid sessionId, Guid childProfileId);
+        Task<ChildSessionRecord?> GetByOccurrenceAndChildAsync(Guid occurrenceId, Guid childProfileId);
     }
 }

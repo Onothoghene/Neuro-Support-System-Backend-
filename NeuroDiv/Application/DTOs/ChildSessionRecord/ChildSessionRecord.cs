@@ -1,4 +1,5 @@
-﻿using Application.DTOs.GoalProgressLog;
+﻿using Application.DTOs.CommonNodes;
+using Application.DTOs.GoalProgressLog;
 using Domain.Enums;
 using System;
 using System.Collections.Generic;
@@ -13,9 +14,8 @@ namespace Application.DTOs.ChildSessionRecord
         public List<GoalProgressLogRequest> GoalProgressLogs { get; set; } = new();
     }
 
-    public class ChildSessionRecordVM
+    public class ChildSessionRecordVM : BaseEntityVM
     {
-        public Guid Id { get; set; }
         public Guid ChildProfileId { get; set; }
         public string ChildFirstName { get; set; }
         public string ChildLastName { get; set; }

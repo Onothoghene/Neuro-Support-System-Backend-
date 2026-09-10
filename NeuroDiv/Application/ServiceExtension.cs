@@ -1,5 +1,6 @@
 ﻿using Application.Behaviours;
 using Application.Helper;
+using Application.Interfaces;
 using Application.JobServices;
 using FluentValidation;
 using Hangfire;
@@ -10,7 +11,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Net;
 using System.Reflection;
 
 namespace Application
@@ -62,6 +62,7 @@ namespace Application
             services.AddTransient<ILogWriter, LogWriter>();
 
             services.AddScoped<IPeriodicLoginService, PeriodicLoginService>();
+            services.AddScoped<ISessionOccurrenceGeneratorService, SessionOccurrenceGeneratorService>();
 
         }
 
@@ -69,10 +70,10 @@ namespace Application
         {
             app.UseHangfireDashboard("/mydashboard");
 
-            //app.UseHangfireDashboard("/mydashboard", new DashboardOptions
-            //{
-            //    Authorization = new[] { new HangfireAuthorizationFilter() }
-            //});
+            app.UseHangfireDashboard("/mydashboard", new DashboardOptions
+            {
+                Authorization = new[] { new HangfireAuthorizationFilter() }
+            });
 
             // Restrict dashboard to SuperAdmin only in production
             //

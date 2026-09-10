@@ -3,26 +3,17 @@ using Domain.Entities;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Repository;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Repositories
 {
-    public class SessionRecurrenceRepositoryAsync : GenericRepositoryAsync<SessionOccurrence>, ISessionRecurrenceRepositoryAsync
+    public class SessionRecurrenceRuleRepositoryAsync : GenericRepositoryAsync<SessionRecurrenceRule>, ISessionRecurrenceRuleRepositoryAsync
     {
-        private readonly DbSet<SessionOccurrence> _SessionRecurrence;
+        private readonly DbSet<SessionRecurrenceRule> _SessionRecurrenceRule;
 
-        public SessionRecurrenceRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
+        public SessionRecurrenceRuleRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
         {
-            _SessionRecurrence = dbContext.Set<SessionOccurrence>();
+            _SessionRecurrenceRule = dbContext.Set<SessionRecurrenceRule>();
         }
 
-        public Task<List<SessionOccurrence>> GetBySeriesIdAsync(Guid seriesId)
-        {
-            return _SessionRecurrence.Where(r => r.SeriesId == seriesId && !r.IsDeleted)
-                                     .ToListAsync();
-        }
     }
 }

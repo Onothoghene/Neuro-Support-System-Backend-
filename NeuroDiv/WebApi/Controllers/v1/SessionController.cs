@@ -13,113 +13,142 @@ namespace WebApi.Controllers.v1
     public class SessionController : BaseApiController
     {
         /// <summary>
-        /// Get all sessions — filterable by org, therapist, child, status, type, date range.
+        /// Get all sessions — filterable by org, therapist, child, status.
         /// </summary>
         /// <param name="organizationId"></param>
         /// <param name="therapistId"></param>
         /// <param name="childProfileId"></param>
-        /// <param name="status"></param>
-        /// <param name="type"></param>
-        /// <param name="fromDate"></param>
-        /// <param name="toDate"></param>
+        /// <param name="isActive"></param>
         /// <returns></returns>
-        [HttpGet]
+        [HttpGet("class")]
         public async Task<IActionResult> GetAll([FromQuery] Guid? organizationId, [FromQuery] Guid? therapistId,
-                                                [FromQuery] Guid? childProfileId, [FromQuery] SessionStatus? status,
-                                                [FromQuery] SessionType? type, [FromQuery] DateTime? fromDate,
-                                                [FromQuery] DateTime? toDate)
+                                                [FromQuery] Guid? childProfileId, [FromQuery] bool? isActive)
         {
-            return Ok(await Mediator.Send(new GetSessionsQuery
+            return Ok(await Mediator.Send(new GetSessionClassesQuery
             {
                 OrganizationId = organizationId,
                 TherapistId = therapistId,
                 ChildProfileId = childProfileId,
+                IsActive = isActive,
+            }));
+        }
+
+        /// <summary>
+        /// Get a specific session class with upcoming occurrences.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpGet("class/{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            return Ok(await Mediator.Send(new GetSessionClassQuery { Id = id }));
+        }
+
+        /// <summary>
+        /// Create a new session — recurring or one-off.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPost("class")]
+        public async Task<IActionResult> Create(CreateSessionClassCommand command)
+        {
+            return Ok(await Mediator.Send(command));
+        }
+
+        /// <summary>
+        /// Update session — title, description, mode, active status, online details.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="command"></param>
+        /// <returns></returns>
+        [HttpPut("class/{id}")]
+        public async Task<IActionResult> Update(Guid id, UpdateSessionClassCommand command)
+        {
+            command.Id = id;
+            return Ok(await Mediator.Send(command));
+        }
+
+        /// <summary>
+        ///  Get occurrences — filterable by class, therapist, child, status, date range.
+        /// </summary>
+        /// <param name="sessionClassId"></param>
+        /// <param name="therapistId"></param>
+        /// <param name="childProfileId"></param>
+        /// <param name="status"></param>
+        /// <param name="fromDate"></param>
+        /// <param name="toDate"></param>
+        /// <returns></returns>
+        [HttpGet("occurrences")]
+        public async Task<IActionResult> GetOccurrences([FromQuery] Guid? sessionClassId, [FromQuery] Guid? therapistId,
+                                                        [FromQuery] Guid? childProfileId, [FromQuery] SessionStatus? status,
+                                                        [FromQuery] DateTime? fromDate, [FromQuery] DateTime? toDate)
+        {
+            return Ok(await Mediator.Send(new GetSessionOccurrencesQuery
+            {
+                SessionClassId = sessionClassId,
+                TherapistId = therapistId,
+                ChildProfileId = childProfileId,
                 Status = status,
-                Type = type,
                 FromDate = fromDate,
                 ToDate = toDate,
             }));
         }
 
         /// <summary>
-        /// Get a specific session with full details including child records and goal logs.
+        /// Get a specific occurrence with full details.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        [HttpGet("occurrences/{id}")]
+        public async Task<IActionResult> GetOccurrence(Guid id)
         {
-            return Ok(await Mediator.Send(new GetSessionQuery { Id = id }));
+            return Ok(await Mediator.Send(new GetSessionOccurrenceQuery { Id = id }));
         }
 
         /// <summary>
-        /// Create a new session — individual or group, single or recurring.
-        /// </summary>
-        /// <param name="command"></param>
-        /// <returns></returns>
-        [HttpPost]
-        public async Task<IActionResult> Create(CreateSessionCommand command)
-        {
-            return Ok(await Mediator.Send(command));
-        }
-
-        /// <summary>
-        /// Update session details — date, time, duration, notes.
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="command"></param>
-        /// <returns></returns>
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, UpdateSessionCommand command)
-        {
-            command.Id = id;
-            return Ok(await Mediator.Send(command));
-        }
-
-        /// <summary>
-        /// Start a scheduled session — changes status to InProgress.
+        /// Start a scheduled occurrence.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpPost("{id}/start")]
+        [HttpPost("occurrences/{id}/start")]
         public async Task<IActionResult> Start(Guid id)
         {
-            return Ok(await Mediator.Send(new StartSessionCommand { Id = id }));
+            return Ok(await Mediator.Send(new StartSessionOccurrenceCommand { Id = id }));
         }
 
         /// <summary>
-        /// Mark a session as complete
+        /// Complete an in-progress occurrence.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="command"></param>
         /// <returns></returns>
-        [HttpPost("{id}/complete")]
-        public async Task<IActionResult> Complete(Guid id, CompleteSessionCommand command)
+        [HttpPost("occurrences/{id}/complete")]
+        public async Task<IActionResult> Complete(Guid id, CompleteSessionOccurrenceCommand command)
         {
             command.Id = id;
             return Ok(await Mediator.Send(command));
         }
 
         /// <summary>
-        /// Cancel a session — single occurrence or entire recurring series.
+        /// Cancel a single occurrence — series continues unaffected.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="command"></param>
         /// <returns></returns>
-        [HttpPost("{id}/cancel")]
-        public async Task<IActionResult> Cancel(Guid id, CancelSessionCommand command)
+        [HttpPost("occurrences/{id}/cancel")]
+        public async Task<IActionResult> Cancel(Guid id, CancelSessionOccurrenceCommand command)
         {
-            command.Id = id;
+            command.OccurrenceId = id;
             return Ok(await Mediator.Send(command));
         }
 
         /// <summary>
-        /// Mark a session as no-show — child, therapist, or both.
+        /// Mark a single occurrence as no-show.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="command"></param>
         /// <returns></returns>
-        [HttpPost("{id}/no-show")]
+        [HttpPost("occurrences/{id}/no-show")]
         public async Task<IActionResult> MarkNoShow(Guid id, MarkNoShowCommand command)
         {
             command.Id = id;
@@ -127,16 +156,16 @@ namespace WebApi.Controllers.v1
         }
 
         /// <summary>
-        /// Add or update session notes and goal progress for a specific child. 
+        /// Add or update session notes and goal progress for the child.
         /// Can be called during or after the session.
         /// </summary>
         /// <param name="id"></param>
         /// <param name="command"></param>
         /// <returns></returns>
-        [HttpPost("{id}/records")]
+        [HttpPost("occurrences/{id}/records")]
         public async Task<IActionResult> AddOrUpdateChildRecord(Guid id, AddOrUpdateChildSessionRecordCommand command)
         {
-            command.SessionId = id;
+            command.SessionOccurrenceId = id;
             return Ok(await Mediator.Send(command));
         }
 

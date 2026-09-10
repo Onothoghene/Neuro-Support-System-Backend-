@@ -8,15 +8,14 @@ namespace Application.Mappings
     {
         public GoalProgressLogProfile()
         {
-            // GoalProgressLog → GoalProgressLogVM
+            // GoalProgressLog -> GoalProgressLogVM
             CreateMap<GoalProgressLog, GoalProgressLogVM>()
-                .ForMember(dest => dest.GoalTitle,
-                    opt => opt.MapFrom(src => src.TherapyGoal.Title))
-                .ForMember(dest => dest.GoalCategory,
-                    opt => opt.MapFrom(src => src.TherapyGoal.GoalCategory.Name))
-                .ForMember(dest => dest.StatusUpdate,
-                    opt => opt.MapFrom(src => src.StatusUpdate.HasValue
-                        ? src.StatusUpdate.ToString() : null));
+                .ForMember(dest => dest.GoalTitle, opt => opt.MapFrom(src => src.TherapyGoal.Title))
+                .ForMember(dest => dest.GoalCategory, opt => opt.MapFrom(src => src.TherapyGoal.GoalCategory.Name))
+                .ForMember(dest => dest.StatusUpdate, opt => opt.MapFrom(src => src.StatusUpdate.HasValue
+                                                                    ? src.StatusUpdate.ToString() : null));
+
+            CreateMap<GoalProgressLogRequest, GoalProgressLog>();
 
         }
     }

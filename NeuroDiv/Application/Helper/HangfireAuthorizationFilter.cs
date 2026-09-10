@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-namespace WebApi.Services
+namespace Application.Helper
 {
     public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
     {
