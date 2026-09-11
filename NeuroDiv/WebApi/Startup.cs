@@ -89,12 +89,15 @@ namespace WebApi
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
+
+            app.UseSwaggerExtension(provider);
+
             app.UseCors("MyPolicy");
             app.UseHttpsRedirection();
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
-            app.UseSwaggerExtension(provider);
+            
             app.UseErrorHandlingMiddleware();
             app.UseHealthChecks();
             app.UseHangfireDashboard();
