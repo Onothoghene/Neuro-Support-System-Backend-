@@ -1,0 +1,23 @@
+name: Deploy to Production
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build_and_deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0
+      - run: dotnet restore
+      - run: dotnet build --configuration Release --no-restore
+      - run: dotnet test --configuration Release --no-build
+      - run: dotnet publish --configuration Release --output ./publish --runtime win-x86
+      - uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        with:
+          website-name: ${{ secrets.PROD_WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.PROD_SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.PROD_SERVER_USERNAME }}
+          server-password: ${{ secrets.PROD_SERVER_PASSWORD }}
