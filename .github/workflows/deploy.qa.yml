@@ -1,0 +1,35 @@
+name: Deploy to QA
+on:
+  push:
+    branches: [qa]
+
+jobs:
+  build_and_deploy:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 9
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0
+
+      - name: Install dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test
+
+      - name: Publish
+        run: dotnet publish --configuration Release --output ./publish --runtime win-x86
+
+      - name: Deploy to MonsterASP.NET (QA)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.QA_FTP_SERVER }}
+          username: ${{ secrets.QA_FTP_USERNAME }}
+          password: ${{ secrets.QA_FTP_PASSWORD }}
+          local-dir: ./publish/
