@@ -45,9 +45,9 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<SessionOnlineDetails> SessionOnlineDetails { get; set; }
 
 
-        public DbSet<Comments> Comments { get; set; }
-        public DbSet<FileTemp> FileTemp { get; set; }
-        public DbSet<Payment> Payment { get; set; }
+        //public DbSet<Comments> Comments { get; set; }
+        //public DbSet<FileTemp> FileTemp { get; set; }
+        //public DbSet<Payment> Payment { get; set; }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
         {
