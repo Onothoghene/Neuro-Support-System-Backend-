@@ -21,7 +21,7 @@ namespace WebApi.Extensions
                 {
                     options.SwaggerEndpoint($"/swagger/{description.GroupName}/swagger.json", description.GroupName.ToUpperInvariant());
                 }
-                options.RoutePrefix = string.Empty;
+                //options.RoutePrefix = string.Empty;
             });
 
         }
