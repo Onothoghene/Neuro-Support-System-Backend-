@@ -108,11 +108,6 @@ namespace WebApi
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapGet("/", async context =>
-                {
-                    context.Response.Redirect("/swagger", permanent: false);
-                    await Task.CompletedTask;
-                });
                 endpoints.MapControllers();
             });
 
