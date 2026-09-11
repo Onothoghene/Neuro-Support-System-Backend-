@@ -1,3 +1,4 @@
+using Infrastructure.Identity.Context;
 using Infrastructure.Identity.Models;
 using Infrastructure.Persistence.Contexts;
 using Infrastructure.Persistence.Seeds;
@@ -38,7 +39,9 @@ namespace WebApi
                     var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                     var appDbContext = services.GetRequiredService<ApplicationDbContext>();
+                    var identityContext = services.GetRequiredService<IdentityContext>();
 
+                    await identityContext.Database.MigrateAsync(); 
                     await appDbContext.Database.MigrateAsync();
 
                     await Infrastructure.Identity.Seeds.DefaultRoles.SeedAsync(userManager, roleManager);

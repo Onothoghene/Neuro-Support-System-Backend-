@@ -1,11 +1,7 @@
-﻿using Application.DTOs.Account;
-using Infrastructure.Identity.Models;
+﻿using Infrastructure.Identity.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Infrastructure.Identity.Context
 {
