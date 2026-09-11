@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
+using System.Threading.Tasks;
 using WebApi.Extensions;
 using WebApi.Services;
 
@@ -107,6 +108,11 @@ namespace WebApi
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGet("/", async context =>
+                {
+                    context.Response.Redirect("/swagger", permanent: false);
+                    await Task.CompletedTask;
+                });
                 endpoints.MapControllers();
             });
 
