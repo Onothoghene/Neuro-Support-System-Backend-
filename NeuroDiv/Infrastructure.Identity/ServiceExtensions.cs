@@ -31,7 +31,7 @@ namespace Infrastructure.Identity
             {
                 services.AddDbContext<IdentityContext>(options =>
                 options.UseSqlServer(
-                    configuration.GetConnectionString("DefaultConnection"),
+                    configuration.GetConnectionString("IdentityConnection"),
                     b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)));
             }
             services.AddIdentity<ApplicationUser, IdentityRole>(

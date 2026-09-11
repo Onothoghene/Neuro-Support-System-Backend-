@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Infrastructure.Persistence.Contexts
 {
-    public class ApplicationDbContext : DbContext
+    public partial class ApplicationDbContext : DbContext
     {
         private readonly IDateTimeService _dateTime;
         private readonly IAuthenticatedUserService _authenticatedUser;
@@ -43,6 +43,16 @@ namespace Infrastructure.Persistence.Contexts
         public DbSet<SessionRecurrenceRule> SessionRecurrenceRule { get; set; }
         public DbSet<SessionOccurrence> SessionOccurrence { get; set; }
         public DbSet<SessionOnlineDetails> SessionOnlineDetails { get; set; }
+        public DbSet<TherapistProfile> TherapistProfile { get; set; }
+        public DbSet<TherapistSpecialization> TherapistSpecialization { get; set; }
+
+        //public DbSet<AssessmentTemplate> AssessmentTemplates { get; set; }
+        //public DbSet<AssessmentSection> AssessmentSections { get; set; }
+        //public DbSet<AssessmentQuestion> AssessmentQuestions { get; set; }
+        //public DbSet<AssessmentQuestionOption> AssessmentQuestionOptions { get; set; }
+        //public DbSet<AssessmentScoreRange> AssessmentScoreRanges { get; set; }
+        //public DbSet<AssessmentSnapshot> AssessmentSnapshots { get; set; }
+        //public DbSet<AssessmentResponse> AssessmentResponses { get; set; }
 
 
         //public DbSet<Comments> Comments { get; set; }
@@ -88,72 +98,25 @@ namespace Infrastructure.Persistence.Contexts
             return base.SaveChangesAsync(cancellationToken);
         }
 
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Universal filtering
-            //builder.Entity<Stage>().HasQueryFilter(p => !p.IsDeleted);
+            OnModelCreatingPartial(modelBuilder);
 
-            //builder.SeedAsync()
+            base.OnModelCreating(modelBuilder);
 
-            //Fluent Navigations
-            builder.Entity<UserProfile>(entity =>
-            {
-                //entity.HasIndex(e => e.AspUserId)
-                //    .HasName("IX_User_AspNet")
-                //    .IsUnique();
+           // modelBuilder.SeedRoles();
 
-                //entity.Property(e => e.AspUserId)
-                //    .IsRequired()
-                //    .HasMaxLength(50);
-
-                entity.Property(e => e.Created).HasColumnType("datetime");
-
-                entity.Property(e => e.FirstName)
-                    .IsRequired()
-                    .HasMaxLength(70);
-
-                entity.Property(e => e.LastName)
-                    .IsRequired()
-                    .HasMaxLength(70);
-
-                entity.Property(e => e.Email);
-
-            });
-
-            //builder.Entity<Comments>(entity =>
-            //{
-            //    entity.HasOne(d => d.CreatedByNavigation)
-            //     .WithMany()
-            //     .HasForeignKey(d => d.CreatedBy)
-            //     .HasConstraintName("FK_Comments_UserProfile");
-            //});
-
-
-            //builder.Entity<FileTemp>(entity =>
-            //{
-            //    entity.HasOne(d => d.MenuItem)
-            //     .WithMany(r => r.Images)
-            //     .HasForeignKey(d => d.MenuItemId)
-            //     .HasConstraintName("FK_FileTemp_MenuItem")
-            //     .OnDelete(DeleteBehavior.Cascade);
-            //});
-
-            //builder.Entity<Payment>(entity =>
-            //{
-            //    entity.HasOne(d => d.Order)
-            //     .WithMany(p => p.Payments)
-            //     .HasForeignKey(d => d.OrderId)
-            //     .HasConstraintName("FK_Payment_Order");
-            //});
+            //modelBuilder.SeedDepartments();
 
             //All Decimals will have 18,6 Range
-            foreach (var property in builder.Model.GetEntityTypes()
+            foreach (var property in modelBuilder.Model.GetEntityTypes()
             .SelectMany(t => t.GetProperties())
             .Where(p => p.ClrType == typeof(decimal) || p.ClrType == typeof(decimal?)))
             {
                 property.SetColumnType("decimal(18,6)");
             }
-            base.OnModelCreating(builder);
         }
+        partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
+
     }
 }
