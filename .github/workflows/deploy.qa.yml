@@ -29,7 +29,6 @@ jobs:
       - name: Deploy to MonsterASP.NET (QA)
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          website-name: ${{ secrets.QA_WEBSITE_NAME }}
-          server-computer-name: ${{ secrets.QA_SERVER_COMPUTER_NAME }}
-          server-username: ${{ secrets.QA_SERVER_USERNAME }}
-          server-password: ${{ secrets.QA_SERVER_PASSWORD }}
+          server: ${{ secrets.QA_FTP_SERVER }}
+          username: ${{ secrets.QA_FTP_USERNAME }}
+          password: ${{ secrets.QA_FTP_PASSWORD }}
