@@ -27,7 +27,7 @@ jobs:
         run: dotnet publish --configuration Release --output ./publish --runtime win-x86
 
       - name: Deploy to MonsterASP.NET (QA)
-        uses: rasmusbuchholdt/simply-web-deploy@2.1.0
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           website-name: ${{ secrets.QA_WEBSITE_NAME }}
           server-computer-name: ${{ secrets.QA_SERVER_COMPUTER_NAME }}
